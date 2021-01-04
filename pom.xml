@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.okguo.snailmall</groupId>
+    <artifactId>snailmall</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>snailmall</name>
+    <description>蜗牛商城聚合服务</description>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>snailmall-product</module>
+        <module>snailmall-coupon</module>
+        <module>snailmall-member</module>
+        <module>snailmall-ware</module>
+        <module>snailmall-order</module>
+    </modules>
+
+
+</project>
