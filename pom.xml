@@ -15,6 +15,7 @@
         <module>snailmall-member</module>
         <module>snailmall-ware</module>
         <module>snailmall-order</module>
+        <module>renren-fast</module>
     </modules>
 
 
