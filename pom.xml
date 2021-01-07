@@ -16,6 +16,8 @@
         <module>snailmall-ware</module>
         <module>snailmall-order</module>
         <module>renren-fast</module>
+        <module>renren-generator</module>
+        <module>snailmall-common</module>
     </modules>
 
 
