@@ -2,7 +2,9 @@ package com.okguo.snailmall.member.controller;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 
+import com.okguo.snailmall.member.feign.CouponFeignService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,6 +31,22 @@ import com.okguo.common.utils.R;
 public class MemberController {
     @Autowired
     private MemberService memberService;
+    @Autowired
+    private CouponFeignService couponFeignService;
+    /**
+     * 列表
+     */
+    @RequestMapping("/listMemberCoupons")
+//    @RequiresPermissions("member:member:list")
+    public R listMemberCoupons(){
+        MemberEntity memberEntity = new MemberEntity();
+        memberEntity.setNickname("张三");
+        memberEntity.setUsername("张三哈哈哈");
+
+        R couponList = couponFeignService.getCouponList();
+
+        return Objects.requireNonNull(R.ok().put("member", memberEntity)).put("coupons", couponList);
+    }
 
     /**
      * 列表
