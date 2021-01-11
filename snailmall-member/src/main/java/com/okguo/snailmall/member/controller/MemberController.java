@@ -45,7 +45,7 @@ public class MemberController {
 
         R couponList = couponFeignService.getCouponList();
 
-        return Objects.requireNonNull(R.ok().put("member", memberEntity)).put("coupons", couponList);
+        return Objects.requireNonNull(R.ok().put("member", memberEntity)).put("coupons", couponList.get("coupons"));
     }
 
     /**
