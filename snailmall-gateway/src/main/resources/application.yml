@@ -2,7 +2,9 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: test_baidu
-          uri: http://www.baidu.com
+        - id: admin_router
+          uri: lb://renren-fast
           predicates:
-            - Query=url, bai.*
+            - Path=/api/**
+          filters:
+            - RewritePath=/api/(?<segment>/?.*), /renren-fast/$\{segment}
