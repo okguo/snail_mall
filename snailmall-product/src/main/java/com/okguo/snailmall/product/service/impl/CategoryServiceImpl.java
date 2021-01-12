@@ -1,7 +1,13 @@
 package com.okguo.snailmall.product.service.impl;
 
 import org.springframework.stereotype.Service;
+
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -25,5 +31,29 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
         return new PageUtils(page);
     }
+
+    /**
+     * @Description: 查询商品类别树形结构
+     * @Author: Guoyongfu
+     * @Date: 2021/1/11 20:37
+     */
+    @Override
+    public List<CategoryEntity> queryWithTree() {
+        List<CategoryEntity> categoryEntities = baseMapper.selectList(null);
+
+        return categoryEntities.stream().filter(categoryEntity -> categoryEntity.getParentCid() == 0)
+                .peek(e -> e.setChildren(wrapCategory(e, categoryEntities)))
+                .sorted(Comparator.comparingInt(o -> (o.getSort() == null ? 0 : o.getSort())))
+                .collect(Collectors.toList());
+    }
+
+    private List<CategoryEntity> wrapCategory(CategoryEntity root, List<CategoryEntity> all) {
+
+        return all.stream().filter(categoryEntity -> categoryEntity.getParentCid().equals(root.getCatId()))
+                .peek(categoryEntity -> categoryEntity.setChildren(wrapCategory(categoryEntity, all)))
+                .sorted(Comparator.comparingInt(o -> (o.getSort() == null ? 0 : o.getSort())))
+                .collect(Collectors.toList());
+    }
+
 
 }
