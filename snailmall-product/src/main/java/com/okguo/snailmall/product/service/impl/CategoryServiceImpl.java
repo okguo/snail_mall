@@ -1,5 +1,8 @@
 package com.okguo.snailmall.product.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.segments.MergeSegments;
+import com.okguo.common.exception.RRException;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -57,6 +60,23 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     public void removeByCateIds(List<Long> asList) {
         //TODO 判断是否已被使用
         baseMapper.deleteBatchIds(asList);
+    }
+
+    /**
+     * @param category
+     * @Description: 新增类别
+     * @Author: Guoyongfu
+     * @Date: 2021/1/15 19:37
+     */
+    @Override
+    public boolean save(CategoryEntity category) {
+        QueryWrapper<CategoryEntity> wrapper = new QueryWrapper<>();
+        wrapper.eq("name", category.getName());
+        List<CategoryEntity> categoryEntities = baseMapper.selectList(wrapper);
+        if (categoryEntities.size() > 0) {
+            throw new RRException("已存在名称相同的类别");
+        }
+        return baseMapper.insert(category) == 1;
     }
 
     private List<CategoryEntity> wrapCategory(CategoryEntity root, List<CategoryEntity> all) {

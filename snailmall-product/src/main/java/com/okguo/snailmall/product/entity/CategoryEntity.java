@@ -11,6 +11,8 @@ import java.util.List;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotEmpty;
+
 /**
  * 商品三级分类
  *
@@ -31,6 +33,7 @@ public class CategoryEntity implements Serializable {
     /**
      * 分类名称
      */
+    @NotEmpty(message = "分类名称不能为空")
     private String name;
     /**
      * 父分类id

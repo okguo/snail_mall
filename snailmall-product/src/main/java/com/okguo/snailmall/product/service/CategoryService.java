@@ -31,5 +31,12 @@ public interface CategoryService extends IService<CategoryEntity> {
      * @Date: 2021/1/13 12:22
      */
     void removeByCateIds(List<Long> asList);
+
+    /**
+     * @Description: 新增类别
+     * @Author: Guoyongfu
+     * @Date: 2021/1/15 19:37
+     */
+    boolean save(CategoryEntity category);
 }
 
