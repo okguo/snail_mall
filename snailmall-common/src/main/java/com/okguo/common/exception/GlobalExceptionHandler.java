@@ -1,4 +1,4 @@
-package com.okguo.snailmall.product.common.exception;
+package com.okguo.common.exception;
 
 import com.alibaba.fastjson.support.spring.FastJsonJsonView;
 import com.okguo.common.exception.RRException;
