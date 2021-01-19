@@ -9,6 +9,8 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.google.j2objc.annotations.J2ObjCIncompatible;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
@@ -65,6 +67,7 @@ public class CategoryEntity implements Serializable {
      */
     private Integer productCount;
 
+    @JsonInclude(value = JsonInclude.Include.NON_EMPTY)
     @TableField(exist = false)
     private List<CategoryEntity> children;
 

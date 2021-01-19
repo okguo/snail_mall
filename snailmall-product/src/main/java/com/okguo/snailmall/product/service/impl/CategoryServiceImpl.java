@@ -2,12 +2,14 @@ package com.okguo.snailmall.product.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.segments.MergeSegments;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.okguo.common.exception.RRException;
+import com.okguo.snailmall.product.entity.CategoryBrandRelationEntity;
+import com.okguo.snailmall.product.service.CategoryBrandRelationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -20,10 +22,14 @@ import com.okguo.common.utils.Query;
 import com.okguo.snailmall.product.dao.CategoryDao;
 import com.okguo.snailmall.product.entity.CategoryEntity;
 import com.okguo.snailmall.product.service.CategoryService;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service("categoryService")
 public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity> implements CategoryService {
+
+    @Autowired
+    private CategoryBrandRelationService categoryBrandRelationService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -78,6 +84,34 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         }
         return baseMapper.insert(category) == 1;
     }
+
+    @Override
+    public Long[] queryCategoryPathById(Long categoryId) {
+        List<Long> list = new ArrayList<>();
+        List<Long> parentPath = findParentPath(categoryId, list);
+        Collections.reverse(parentPath);
+        return parentPath.toArray(new Long[3]);
+    }
+
+    @Transactional
+    @Override
+    public void updateDetail(CategoryEntity category) {
+        this.updateById(category);
+        CategoryBrandRelationEntity categoryBrandRelationEntity = new CategoryBrandRelationEntity();
+        categoryBrandRelationEntity.setCatelogId(category.getCatId());
+        categoryBrandRelationEntity.setCatelogName(category.getName());
+        categoryBrandRelationService.update(categoryBrandRelationEntity, new UpdateWrapper<CategoryBrandRelationEntity>().eq("catelog_id", category.getCatId()));
+    }
+
+    private List<Long> findParentPath(Long categoryId, List<Long> parentPath) {
+        parentPath.add(categoryId);
+        CategoryEntity categoryEntity = this.getById(categoryId);
+        if (categoryEntity.getParentCid() != 0) {
+            findParentPath(categoryEntity.getParentCid(), parentPath);
+        }
+        return parentPath;
+    }
+
 
     private List<CategoryEntity> wrapCategory(CategoryEntity root, List<CategoryEntity> all) {
 

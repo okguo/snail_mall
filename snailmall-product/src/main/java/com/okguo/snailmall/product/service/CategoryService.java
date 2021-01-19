@@ -38,5 +38,9 @@ public interface CategoryService extends IService<CategoryEntity> {
      * @Date: 2021/1/15 19:37
      */
     boolean save(CategoryEntity category);
+
+    Long[] queryCategoryPathById(Long categoryId);
+
+    void updateDetail(CategoryEntity category);
 }
 
