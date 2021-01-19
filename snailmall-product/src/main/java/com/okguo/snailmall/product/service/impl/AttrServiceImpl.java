@@ -35,6 +35,7 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         return new PageUtils(page);
     }
 
+
     @Transactional
     @Override
     public void saveAttr(AttrVo attr) {
