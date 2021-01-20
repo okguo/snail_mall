@@ -9,6 +9,13 @@ spring:
           filters:
             - RewritePath=/api/(?<segment>/?.*), /$\{segment}
 
+        - id: member_router
+          uri: lb://snailmall-member
+          predicates:
+            - Path=/api/member/**
+          filters:
+            - RewritePath=/api/(?<segment>/?.*), /$\{segment}
+
         - id: third_party_router
           uri: lb://snailmall-third-party
           predicates:

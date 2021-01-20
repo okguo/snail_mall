@@ -2,8 +2,10 @@ package com.okguo.snailmall.product.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.okguo.common.utils.PageUtils;
+import com.okguo.snailmall.product.entity.BrandEntity;
 import com.okguo.snailmall.product.entity.CategoryBrandRelationEntity;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,5 +22,7 @@ public interface CategoryBrandRelationService extends IService<CategoryBrandRela
     void saveDetail(CategoryBrandRelationEntity categoryBrandRelation);
 
     void updateBrand(Long brandId, String name);
+
+    List<BrandEntity> getBrandsByCatId(Long catId);
 }
 

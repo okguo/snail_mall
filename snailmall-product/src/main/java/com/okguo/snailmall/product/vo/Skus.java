@@ -29,7 +29,7 @@ public class Skus {
     private BigDecimal fullPrice;
     private BigDecimal reducePrice;
     private int priceStatus;
-    private List<com.atguigu.gulimall.product.vo.MemberPrice> memberPrice;
+    private List<MemberPrice> memberPrice;
 
 
 }

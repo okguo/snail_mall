@@ -1,6 +1,6 @@
 package com.okguo.snailmall.product.vo;
 
-import com.atguigu.gulimall.product.entity.AttrEntity;
+import com.okguo.snailmall.product.entity.AttrEntity;
 import lombok.Data;
 
 import java.util.List;

@@ -1,8 +1,8 @@
 package com.okguo.snailmall.product.vo;
 
-import com.atguigu.gulimall.product.entity.SkuImagesEntity;
-import com.atguigu.gulimall.product.entity.SkuInfoEntity;
-import com.atguigu.gulimall.product.entity.SpuInfoDescEntity;
+import com.okguo.snailmall.product.entity.SkuImagesEntity;
+import com.okguo.snailmall.product.entity.SkuInfoEntity;
+import com.okguo.snailmall.product.entity.SpuInfoDescEntity;
 import lombok.Data;
 
 import java.util.List;
@@ -18,7 +18,7 @@ public class SkuItemVo {
     List<SkuImagesEntity> images;
 
     //3、获取spu的销售属性组合。
-    List<com.atguigu.gulimall.product.vo.SkuItemSaleAttrVo> saleAttr;
+    List<SkuItemSaleAttrVo> saleAttr;
 
     //4、获取spu的介绍
     SpuInfoDescEntity desp;
@@ -26,7 +26,7 @@ public class SkuItemVo {
     //5、获取spu的规格参数信息。
     List<SpuItemAttrGroupVo> groupAttrs;
 
-    com.atguigu.gulimall.product.vo.SeckillInfoVo seckillInfo;//当前商品的秒杀优惠信息
+    SeckillInfoVo seckillInfo;//当前商品的秒杀优惠信息
 
 
 
