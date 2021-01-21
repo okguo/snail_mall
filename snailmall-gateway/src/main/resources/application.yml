@@ -16,6 +16,13 @@ spring:
           filters:
             - RewritePath=/api/(?<segment>/?.*), /$\{segment}
 
+        - id: ware_router
+          uri: lb://snailmall-ware
+          predicates:
+            - Path=/api/ware/**
+          filters:
+            - RewritePath=/api/(?<segment>/?.*), /$\{segment}
+
         - id: third_party_router
           uri: lb://snailmall-third-party
           predicates:
