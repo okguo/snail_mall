@@ -20,6 +20,7 @@
         <module>snailmall-common</module>
         <module>snailmall-gateway</module>
         <module>snailmall-third-party</module>
+        <module>snailmall-elasticsearch</module>
     </modules>
 
 
