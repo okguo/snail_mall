@@ -1,14 +1,12 @@
 package com.okguo.snailmall.ware.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import com.okguo.common.to.SkuHasStockVo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.okguo.snailmall.ware.entity.WareSkuEntity;
 import com.okguo.snailmall.ware.service.WareSkuService;
@@ -29,6 +27,16 @@ import com.okguo.common.utils.R;
 public class WareSkuController {
     @Autowired
     private WareSkuService wareSkuService;
+
+    /**
+     * 列表
+     */
+    @PostMapping("/hasStock")
+//    @RequiresPermissions("ware:waresku:list")
+    public R hasStock(@RequestBody List<Long> skuIds){
+        List<SkuHasStockVo> stockVos = wareSkuService.queryHasStock(skuIds);
+        return R.ok(stockVos);
+    }
 
     /**
      * 列表

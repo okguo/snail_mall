@@ -1,5 +1,6 @@
 package com.okguo.snailmall.ware.service.impl;
 
+import com.okguo.common.to.SkuHasStockVo;
 import com.okguo.common.utils.R;
 import com.okguo.snailmall.ware.feign.ProductFeignService;
 import org.apache.commons.lang3.StringUtils;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -78,6 +80,18 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
         } else {
             wareSkuDao.addStock(skuId, wareId, skuNum);
         }
+    }
+
+    @Override
+    public List<SkuHasStockVo> queryHasStock(List<Long> skuIds) {
+
+        return skuIds.stream().map(skuId -> {
+            SkuHasStockVo vo = new SkuHasStockVo();
+            Long count = baseMapper.queryStockBySkuId(skuId);
+            vo.setSkuId(skuId);
+            vo.setHasStock(count != null && count > 0);
+            return vo;
+        }).collect(Collectors.toList());
     }
 
 }

@@ -6,10 +6,10 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @EnableDiscoveryClient
 @SpringBootApplication
-public class ElasticsearchApplication {
+public class SnailmallElasticsearchApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ElasticsearchApplication.class, args);
+		SpringApplication.run(SnailmallElasticsearchApplication.class, args);
 	}
 
 }

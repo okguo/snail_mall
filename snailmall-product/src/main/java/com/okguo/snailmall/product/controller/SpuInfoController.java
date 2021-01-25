@@ -42,6 +42,16 @@ public class SpuInfoController {
         return R.ok().put("page", page);
     }
 
+    /**
+     * 信息
+     */
+    @RequestMapping("/{spuId}/up")
+//    @RequiresPermissions("product:spuinfo:info")
+    public R up(@PathVariable("spuId") Long spuId){
+        spuInfoService.up(spuId);
+
+        return R.ok();
+    }
 
     /**
      * 信息
