@@ -3,6 +3,7 @@ package com.okguo.snailmall.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.okguo.common.utils.PageUtils;
 import com.okguo.snailmall.product.entity.CategoryEntity;
+import com.okguo.snailmall.product.vo.Catelog2Vo;
 
 import java.util.List;
 import java.util.Map;
@@ -42,5 +43,10 @@ public interface CategoryService extends IService<CategoryEntity> {
     Long[] queryCategoryPathById(Long categoryId);
 
     void updateDetail(CategoryEntity category);
+
+    List<CategoryEntity> queryLevelOneCategory();
+
+    Map<String, List<Catelog2Vo>> queryCatalogJson();
+
 }
 

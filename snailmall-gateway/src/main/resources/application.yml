@@ -37,3 +37,8 @@ spring:
           filters:
             - RewritePath=/api/(?<segment>/?.*), /renren-fast/$\{segment}
 
+        - id: snailmall_host_router
+          uri: lb://snailmall-product
+          predicates:
+            - Host=**.snailmall.com
+
