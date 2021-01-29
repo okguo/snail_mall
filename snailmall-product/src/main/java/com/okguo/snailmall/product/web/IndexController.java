@@ -3,6 +3,8 @@ package com.okguo.snailmall.product.web;
 import com.okguo.snailmall.product.entity.CategoryEntity;
 import com.okguo.snailmall.product.service.CategoryService;
 import com.okguo.snailmall.product.vo.Catelog2Vo;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,6 +25,9 @@ public class IndexController {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private RedissonClient redisson;
+
     @RequestMapping({"*", "index.html", "index", "home"})
     public String getIndex(Model model) {
 
@@ -36,6 +41,17 @@ public class IndexController {
     @RequestMapping("index/json/catalog.json")
     public Map<String, List<Catelog2Vo>> queryCatalogJson() {
         return categoryService.queryCatalogJson();
+    }
+
+    @RequestMapping("hello")
+    public String hello() {
+
+        RLock lock = redisson.getLock("my-lock");
+        lock.lock();
+
+
+
+        return "hello";
     }
 
 }

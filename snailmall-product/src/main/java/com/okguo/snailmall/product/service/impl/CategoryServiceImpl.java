@@ -1,17 +1,21 @@
 package com.okguo.snailmall.product.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.baomidou.mybatisplus.core.conditions.segments.MergeSegments;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.okguo.common.constant.RedisConstants;
 import com.okguo.common.exception.RRException;
 import com.okguo.snailmall.product.entity.CategoryBrandRelationEntity;
 import com.okguo.snailmall.product.service.CategoryBrandRelationService;
 import com.okguo.snailmall.product.vo.Catelog2Vo;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -24,14 +28,15 @@ import com.okguo.snailmall.product.dao.CategoryDao;
 import com.okguo.snailmall.product.entity.CategoryEntity;
 import com.okguo.snailmall.product.service.CategoryService;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 
-
+@Slf4j
 @Service("categoryService")
 public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity> implements CategoryService {
 
     @Autowired
     private CategoryBrandRelationService categoryBrandRelationService;
+    @Autowired
+    private StringRedisTemplate redisTemplate;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -110,16 +115,54 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         return baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
     }
 
+    /**
+     * 流程 查询缓存中有没有，如果有，直接返回，如果没有从数据库中查出，添加到缓存，并返回
+     */
     @Override
     public Map<String, List<Catelog2Vo>> queryCatalogJson() {
-        List<CategoryEntity> l1Category = this.queryLevelOneCategory();
+        return this.queryCatalogJsonByRedisLock();
+    }
 
-        return l1Category.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), l1 -> {
-            List<CategoryEntity> l2Category = baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", l1.getCatId()));
+    public Map<String, List<Catelog2Vo>> queryCatalogJsonByLocalLock() {
+
+        synchronized (this) {
+            String categoryJson = redisTemplate.opsForValue().get(RedisConstants.PRODUCT_CATEGORY_KEY);
+            if (StringUtils.isNotEmpty(categoryJson)) {
+                return JSONObject.parseObject(categoryJson, new TypeReference<Map<String, List<Catelog2Vo>>>() {
+                });
+            }
+            return this.queryCatalogJsonFromDb();
+        }
+    }
+
+    public Map<String, List<Catelog2Vo>> queryCatalogJsonByRedisLock() {
+
+        Boolean lock = redisTemplate.opsForValue().setIfAbsent("lock", "111");
+        if (lock) {
+
+            String categoryJson = redisTemplate.opsForValue().get(RedisConstants.PRODUCT_CATEGORY_KEY);
+            if (StringUtils.isNotEmpty(categoryJson)) {
+                return JSONObject.parseObject(categoryJson, new TypeReference<Map<String, List<Catelog2Vo>>>() {
+                });
+            }
+            return this.queryCatalogJsonFromDb();
+        } else {
+            return queryCatalogJsonByRedisLock();
+        }
+
+    }
+
+    public Map<String, List<Catelog2Vo>> queryCatalogJsonFromDb() {
+        log.info("查询了数据库。。。。");
+        List<CategoryEntity> selectList = baseMapper.selectList(null);
+
+        List<CategoryEntity> l1Category = this.getParent_cid(selectList, 0L);
+        Map<String, List<Catelog2Vo>> collect = l1Category.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), l1 -> {
+            List<CategoryEntity> l2Category = getParent_cid(selectList, l1.getCatId());
             List<Catelog2Vo> catelog2VoList = new ArrayList<>();
             if (l2Category != null) {
                 catelog2VoList = l2Category.stream().map(l2 -> {
-                    List<CategoryEntity> l3Category = baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", l2.getCatId()));
+                    List<CategoryEntity> l3Category = getParent_cid(selectList, l2.getCatId());
                     List<Catelog2Vo.Catelog3Vo> catelog3VoList = new ArrayList<>();
                     if (l3Category != null) {
                         catelog3VoList = l3Category.stream().map(l3 -> new Catelog2Vo.Catelog3Vo(l2.getCatId().toString(), l3.getCatId().toString(), l3.getName())).collect(Collectors.toList());
@@ -129,6 +172,13 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             }
             return catelog2VoList;
         }));
+        //
+        redisTemplate.opsForValue().set(RedisConstants.PRODUCT_CATEGORY_KEY, JSON.toJSONString(collect));
+        return collect;
+    }
+
+    private List<CategoryEntity> getParent_cid(List<CategoryEntity> selectList, Long catId) {
+        return selectList.stream().filter(item -> item.getParentCid().equals(catId)).collect(Collectors.toList());
     }
 
     private List<Long> findParentPath(Long categoryId, List<Long> parentPath) {
