@@ -11,7 +11,12 @@ import com.okguo.snailmall.product.service.CategoryBrandRelationService;
 import com.okguo.snailmall.product.vo.Catelog2Vo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +42,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     private CategoryBrandRelationService categoryBrandRelationService;
     @Autowired
     private StringRedisTemplate redisTemplate;
+    @Autowired
+    private RedissonClient redisson;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -69,6 +76,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      * @Author: Guoyongfu
      * @Date: 2021/1/13 12:22
      */
+    @CacheEvict(value = "category", allEntries = true)
     @Override
     public void removeByCateIds(List<Long> asList) {
         //TODO 判断是否已被使用
@@ -81,6 +89,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      * @Author: Guoyongfu
      * @Date: 2021/1/15 19:37
      */
+    @CacheEvict(value = "category", allEntries = true)
     @Override
     public boolean save(CategoryEntity category) {
         QueryWrapper<CategoryEntity> wrapper = new QueryWrapper<>();
@@ -100,6 +109,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         return parentPath.toArray(new Long[3]);
     }
 
+    @CacheEvict(value = "category", allEntries = true)
     @Transactional
     @Override
     public void updateDetail(CategoryEntity category) {
@@ -110,54 +120,40 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         categoryBrandRelationService.update(categoryBrandRelationEntity, new UpdateWrapper<CategoryBrandRelationEntity>().eq("catelog_id", category.getCatId()));
     }
 
+    @Cacheable(value = "category", key = "#root.method.name", sync = true)
     @Override
     public List<CategoryEntity> queryLevelOneCategory() {
+        log.info("查询一级分类走了数据库。。。");
         return baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
     }
 
     /**
-     * 流程 查询缓存中有没有，如果有，直接返回，如果没有从数据库中查出，添加到缓存，并返回
+     * @Description: 使用spring Cache 缓存
+     * @Author: Guoyongfu
+     * @Date: 2021/1/31 10:43
      */
     @Override
-    public Map<String, List<Catelog2Vo>> queryCatalogJson() {
-        return this.queryCatalogJsonByRedisLock();
-    }
-
-    public Map<String, List<Catelog2Vo>> queryCatalogJsonByLocalLock() {
-
-        synchronized (this) {
-            String categoryJson = redisTemplate.opsForValue().get(RedisConstants.PRODUCT_CATEGORY_KEY);
-            if (StringUtils.isNotEmpty(categoryJson)) {
-                return JSONObject.parseObject(categoryJson, new TypeReference<Map<String, List<Catelog2Vo>>>() {
-                });
-            }
-            return this.queryCatalogJsonFromDb();
-        }
-    }
-
-    public Map<String, List<Catelog2Vo>> queryCatalogJsonByRedisLock() {
-
-        Boolean lock = redisTemplate.opsForValue().setIfAbsent("lock", "111");
-        if (lock) {
-
-            String categoryJson = redisTemplate.opsForValue().get(RedisConstants.PRODUCT_CATEGORY_KEY);
-            if (StringUtils.isNotEmpty(categoryJson)) {
-                return JSONObject.parseObject(categoryJson, new TypeReference<Map<String, List<Catelog2Vo>>>() {
-                });
-            }
-            return this.queryCatalogJsonFromDb();
-        } else {
-            return queryCatalogJsonByRedisLock();
-        }
-
-    }
-
-    public Map<String, List<Catelog2Vo>> queryCatalogJsonFromDb() {
+    public Map<String, List<Catelog2Vo>> queryCatalogJsonV2() {
         log.info("查询了数据库。。。。");
         List<CategoryEntity> selectList = baseMapper.selectList(null);
 
         List<CategoryEntity> l1Category = this.getParent_cid(selectList, 0L);
-        Map<String, List<Catelog2Vo>> collect = l1Category.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), l1 -> {
+        return getResultMap(selectList, l1Category);
+    }
+
+    @Cacheable(value = "category", key = "#root.methodName", sync = true)
+    @Override
+    public Map<String, List<Catelog2Vo>> queryCatalogJsonV3() {
+
+        log.info("查询了数据库。。。。");
+        List<CategoryEntity> selectList = baseMapper.selectList(null);
+        List<CategoryEntity> l1Category = this.getParent_cid(selectList, 0L);
+
+        return getResultMap(selectList, l1Category);
+    }
+
+    private Map<String, List<Catelog2Vo>> getResultMap(List<CategoryEntity> selectList, List<CategoryEntity> l1Category) {
+        return l1Category.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), l1 -> {
             List<CategoryEntity> l2Category = getParent_cid(selectList, l1.getCatId());
             List<Catelog2Vo> catelog2VoList = new ArrayList<>();
             if (l2Category != null) {
@@ -172,10 +168,58 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             }
             return catelog2VoList;
         }));
+    }
+
+
+    /**
+     * 流程 查询缓存中有没有，如果有，直接返回，如果没有从数据库中查出，添加到缓存，并返回
+     */
+    @Override
+    public Map<String, List<Catelog2Vo>> queryCatalogJsonV1() {
+        return this.queryCatalogJsonByRedissonLock();
+    }
+
+    //使用本地锁  保障数据库查询次数不多
+    public Map<String, List<Catelog2Vo>> queryCatalogJsonByLocalLock() {
+
+        synchronized (this) {
+            return this.queryCatalogJsonFromDb();
+        }
+    }
+
+    //使用redisson  保障数据库查询次数不多
+    public Map<String, List<Catelog2Vo>> queryCatalogJsonByRedissonLock() {
+
+        RLock lock = redisson.getLock("CatalogJson-lock");
+        lock.lock();
+        Map<String, List<Catelog2Vo>> map;
+        try {
+            map = this.queryCatalogJsonFromDb();
+        } finally {
+            lock.unlock();
+        }
+        return map;
+    }
+
+    public Map<String, List<Catelog2Vo>> queryCatalogJsonFromDb() {
+
+        String categoryJson = redisTemplate.opsForValue().get(RedisConstants.PRODUCT_CATEGORY_KEY);
+        if (StringUtils.isNotEmpty(categoryJson)) {
+            log.info("查询了redis......");
+            return JSONObject.parseObject(categoryJson, new TypeReference<Map<String, List<Catelog2Vo>>>() {
+            });
+        }
+
+        log.info("查询了数据库。。。。");
+        List<CategoryEntity> selectList = baseMapper.selectList(null);
+
+        List<CategoryEntity> l1Category = this.getParent_cid(selectList, 0L);
+        Map<String, List<Catelog2Vo>> collect = getResultMap(selectList, l1Category);
         //
         redisTemplate.opsForValue().set(RedisConstants.PRODUCT_CATEGORY_KEY, JSON.toJSONString(collect));
         return collect;
     }
+
 
     private List<CategoryEntity> getParent_cid(List<CategoryEntity> selectList, Long catId) {
         return selectList.stream().filter(item -> item.getParentCid().equals(catId)).collect(Collectors.toList());

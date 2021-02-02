@@ -40,7 +40,7 @@ public class IndexController {
     @ResponseBody
     @RequestMapping("index/json/catalog.json")
     public Map<String, List<Catelog2Vo>> queryCatalogJson() {
-        return categoryService.queryCatalogJson();
+        return categoryService.queryCatalogJsonV3();
     }
 
     @RequestMapping("hello")

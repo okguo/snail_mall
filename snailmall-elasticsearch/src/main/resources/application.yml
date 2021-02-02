@@ -1,3 +1,7 @@
 logging:
   level:
     org.springframework: warn
+
+spring:
+  thymeleaf:
+    cache: false

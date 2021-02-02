@@ -40,5 +40,10 @@ spring:
         - id: snailmall_host_router
           uri: lb://snailmall-product
           predicates:
-            - Host=**.snailmall.com
+            - Host=snailmall.com
+
+        - id: snailmall_elasticsearch_host_router
+          uri: lb://snailmall-elasticsearch
+          predicates:
+            - Host=search.snailmall.com
 
