@@ -1,8 +1,8 @@
 spring:
   datasource:
     username: root
-    password: 123456
-    url: jdbc:mysql://localhost:3306/snailmall_pms
+    password: root
+    url: jdbc:mysql://192.168.56.10:3306/snailmall_pms
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   cloud:
@@ -25,8 +25,10 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: auto
-      logic-delete-value: 1
-      logic-not-delete-value: 0
+      logic-delete-value: 0
+      logic-not-delete-value: 1
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 server:
   port: 8084
 

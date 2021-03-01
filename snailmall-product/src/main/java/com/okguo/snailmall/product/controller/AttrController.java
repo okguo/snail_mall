@@ -25,7 +25,7 @@ import com.okguo.common.utils.R;
  * @date 2021-01-07 11:38:36
  */
 @RestController
-@RequestMapping("product/attr")
+@RequestMapping("product/attr/")
 public class AttrController {
     @Autowired
     private AttrService attrService;

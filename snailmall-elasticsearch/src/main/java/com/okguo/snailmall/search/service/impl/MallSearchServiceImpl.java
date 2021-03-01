@@ -1,10 +1,14 @@
 package com.okguo.snailmall.search.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.okguo.common.to.es.SkuEsModel;
+import com.okguo.common.utils.R;
 import com.okguo.snailmall.search.config.SnailmallElasticSearchConfig;
 import com.okguo.snailmall.search.constant.EsConstant;
+import com.okguo.snailmall.search.feign.ProductFeignService;
 import com.okguo.snailmall.search.service.MallSearchService;
+import com.okguo.snailmall.search.vo.AttrResponseVO;
 import com.okguo.snailmall.search.vo.SearchParam;
 import com.okguo.snailmall.search.vo.SearchResult;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +39,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -51,6 +57,8 @@ public class MallSearchServiceImpl implements MallSearchService {
 
     @Autowired
     private RestHighLevelClient client;
+    @Autowired
+    private ProductFeignService productFeignService;
 
     @Override
     public SearchResult search(SearchParam param) {
@@ -241,6 +249,36 @@ public class MallSearchServiceImpl implements MallSearchService {
         }
         result.setPageNavs(pageNavs);
 
+        if (param.getAttrs() != null && param.getAttrs().size() > 0) {
+            List<SearchResult.NavVo> navVos = param.getAttrs().stream().map(attr -> {
+                SearchResult.NavVo navVo = new SearchResult.NavVo();
+                String[] s = attr.split("_");
+                navVo.setNavValue(s[1]);
+                R r = productFeignService.attrInfo(Long.parseLong(s[0]));
+                if (r.getCode() == 0) {
+                    AttrResponseVO attr1 = r.getData("attr", new TypeReference<AttrResponseVO>() {
+                    });
+                    navVo.setNavName(attr1.getAttrName());
+                } else {
+                    navVo.setNavName(s[0]);
+                }
+                String encode = null;
+                try {
+                    encode = URLEncoder.encode(attr, "utf-8");
+                    encode = encode.replace("+", "%20");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+
+                String replace = param.get_queryString().replace("&attr" + encode, "");
+                navVo.setLink("http://search.snailmall.com/list.html?" + replace);
+
+                return navVo;
+            }).collect(Collectors.toList());
+            result.setNavs(navVos);
+        }else {
+            result.setNavs(new ArrayList<>());
+        }
 
         log.info("buildSearchResult->result:" + JSON.toJSONString(result));
         return result;
