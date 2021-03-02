@@ -4,7 +4,11 @@ import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.okguo.snailmall.product.service.CategoryBrandRelationService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -50,6 +54,15 @@ public class BrandServiceImpl extends ServiceImpl<BrandDao, BrandEntity> impleme
             //TODO 更新其他关联表
         }
 
+    }
+
+    @Cacheable(value = "brand",key = "'brand:'+#root.args[0]")
+    @Override
+    public List<BrandEntity> getBrandsByIds(List<Long> brandIds) {
+        if (brandIds != null && brandIds.size() > 0) {
+            return baseMapper.selectList(new QueryWrapper<BrandEntity>().in("brand_id", brandIds));
+        }
+        return new ArrayList<>();
     }
 
 }

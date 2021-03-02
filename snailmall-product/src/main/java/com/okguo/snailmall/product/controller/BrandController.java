@@ -1,6 +1,7 @@
 package com.okguo.snailmall.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import com.okguo.common.validate.AddGroup;
@@ -54,6 +55,17 @@ public class BrandController {
 		BrandEntity brand = brandService.getById(brandId);
 
         return R.ok().put("brand", brand);
+    }
+
+    /**
+     * 信息
+     */
+    @RequestMapping("/infos")
+//    @RequiresPermissions("product:brand:info")
+        public R infos(@RequestParam("brandIds") List<Long> brandIds){
+        List<BrandEntity> brands = brandService.getBrandsByIds(brandIds);
+
+        return R.ok().put("brands", brands);
     }
 
     /**

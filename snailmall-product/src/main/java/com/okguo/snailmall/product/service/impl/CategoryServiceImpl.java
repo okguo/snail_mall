@@ -152,6 +152,12 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         return getResultMap(selectList, l1Category);
     }
 
+    @Cacheable(value = "category",key = "'category'+#root.args[0]")
+    @Override
+    public CategoryEntity selectById(Long catId) {
+        return baseMapper.selectById(catId);
+    }
+
     private Map<String, List<Catelog2Vo>> getResultMap(List<CategoryEntity> selectList, List<CategoryEntity> l1Category) {
         return l1Category.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), l1 -> {
             List<CategoryEntity> l2Category = getParent_cid(selectList, l1.getCatId());

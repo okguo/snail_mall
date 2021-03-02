@@ -8,9 +8,7 @@ import com.okguo.snailmall.search.config.SnailmallElasticSearchConfig;
 import com.okguo.snailmall.search.constant.EsConstant;
 import com.okguo.snailmall.search.feign.ProductFeignService;
 import com.okguo.snailmall.search.service.MallSearchService;
-import com.okguo.snailmall.search.vo.AttrResponseVO;
-import com.okguo.snailmall.search.vo.SearchParam;
-import com.okguo.snailmall.search.vo.SearchResult;
+import com.okguo.snailmall.search.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
@@ -262,16 +260,10 @@ public class MallSearchServiceImpl implements MallSearchService {
                 } else {
                     navVo.setNavName(s[0]);
                 }
-                String encode = null;
-                try {
-                    encode = URLEncoder.encode(attr, "utf-8");
-                    encode = encode.replace("+", "%20");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-
-                String replace = param.get_queryString().replace("&attr" + encode, "");
+                String replace = getReplaceString(param, attr,"attrs");
                 navVo.setLink("http://search.snailmall.com/list.html?" + replace);
+
+                result.getAttrIds().add(Long.parseLong(s[0]));
 
                 return navVo;
             }).collect(Collectors.toList());
@@ -280,7 +272,54 @@ public class MallSearchServiceImpl implements MallSearchService {
             result.setNavs(new ArrayList<>());
         }
 
+        if (param.getBrandId() != null && param.getBrandId().size() > 0) {
+            List<SearchResult.NavVo> navVos = result.getNavs();
+            SearchResult.NavVo navVo = new SearchResult.NavVo();
+            navVo.setNavName("品牌");
+
+            R r = productFeignService.brandInfos(param.getBrandId());
+            if (r.getCode() == 0) {
+                List<BrandVO> brands = r.getData("brands", new TypeReference<List<BrandVO>>() {
+                });
+                StringBuilder stringBuffer = new StringBuilder();
+                String replace = "";
+                for (BrandVO brand : brands) {
+                    stringBuffer.append(brand.getName()).append(";");
+                    replace = getReplaceString(param, brand.getBrandId()+"", "brandId");
+                }
+                navVo.setNavValue(stringBuffer.toString());
+                navVo.setLink("http://search.snailmall.com/list.html?" + replace);
+            }
+            navVos.add(navVo);
+        }
+
+        if (param.getCatalog3Id() != null) {
+            List<SearchResult.NavVo> navVos = result.getNavs();
+            SearchResult.NavVo navVo = new SearchResult.NavVo();
+            navVo.setNavName("分类");
+            R r = productFeignService.categoryInfo(param.getCatalog3Id());
+            if (r.getCode() == 0) {
+                CategoryVO categoryVO = r.getData(new TypeReference<CategoryVO>() {
+                });
+                navVo.setNavValue(categoryVO.getName());
+                String replace = getReplaceString(param, param.getCatalog3Id()+"", "catalog3Id");
+                navVo.setLink("http://search.snailmall.com/list.html?" + replace);
+            }
+            navVos.add(navVo);
+        }
+
         log.info("buildSearchResult->result:" + JSON.toJSONString(result));
         return result;
+    }
+
+    private String getReplaceString(SearchParam param, String attr,String key) {
+        String encode = "";
+        try {
+            encode = URLEncoder.encode(attr, "utf-8");
+            encode = encode.replace("+", "%20");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return param.get_queryString().replace( key+"=" + encode, "");
     }
 }
