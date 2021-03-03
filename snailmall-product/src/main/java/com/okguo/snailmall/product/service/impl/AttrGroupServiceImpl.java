@@ -3,6 +3,7 @@ package com.okguo.snailmall.product.service.impl;
 import com.okguo.snailmall.product.entity.AttrEntity;
 import com.okguo.snailmall.product.service.AttrService;
 import com.okguo.snailmall.product.vo.AttrGroupWithAttrsVo;
+import com.okguo.snailmall.product.vo.SpuItemAttrGroupVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +68,11 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
             attrsVo.setAttrs(attrs);
             return attrsVo;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SpuItemAttrGroupVo> getAttrGroupWithAttrsBySpuIdAndCatelgoryId(Long spuId, Long catalogId) {
+        return baseMapper.getAttrGroupWithAttrsBySpuIdAndCatelgoryId(spuId, catalogId);
     }
 
 }

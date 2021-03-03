@@ -2,6 +2,7 @@ package com.okguo.snailmall.product.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.okguo.common.utils.PageUtils;
+import com.okguo.snailmall.product.entity.SkuImagesEntity;
 import com.okguo.snailmall.product.entity.SpuImagesEntity;
 
 import java.util.List;

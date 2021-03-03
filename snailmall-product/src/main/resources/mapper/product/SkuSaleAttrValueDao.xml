@@ -3,7 +3,7 @@
 
 <mapper namespace="com.okguo.snailmall.product.dao.SkuSaleAttrValueDao">
 
-	<!-- 可根据自己的需求，是否要使用 -->
+    <!-- 可根据自己的需求，是否要使用 -->
     <resultMap type="com.okguo.snailmall.product.entity.SkuSaleAttrValueEntity" id="skuSaleAttrValueMap">
         <result property="id" column="id"/>
         <result property="skuId" column="sku_id"/>
@@ -12,6 +12,27 @@
         <result property="attrValue" column="attr_value"/>
         <result property="attrSort" column="attr_sort"/>
     </resultMap>
+    <resultMap id="SkuItemSaleAttrVoMap" type="com.okguo.snailmall.product.vo.SkuItemSaleAttrVo">
+        <result property="attrId" column="attrId"/>
+        <result property="attrName" column="attrName"/>
+        <collection property="attrValues" ofType="com.okguo.snailmall.product.vo.AttrValueWithSkuIdVo">
+            <result property="attrValue" column="attrValue"/>
+            <result property="skuIds" column="skuIds"/>
+        </collection>
+    </resultMap>
+
+    <select id="getSaleAttrsBySpuId" resultMap="SkuItemSaleAttrVoMap">
+        SELECT pssav.attr_id                     attrId,
+               pssav.attr_name                   attrName,
+               pssav.attr_value                  attrValue,
+               GROUP_CONCAT(DISTINCT psi.sku_id) skuIds
+        FROM pms_sku_info psi
+                 LEFT JOIN pms_sku_sale_attr_value pssav ON pssav.sku_id = psi.sku_id
+        WHERE psi.spu_id = #{spuId}
+        GROUP BY pssav.attr_id,
+                 pssav.attr_name,
+                 pssav.attr_value
+    </select>
 
 
 </mapper>

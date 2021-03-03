@@ -3,7 +3,7 @@
 
 <mapper namespace="com.okguo.snailmall.product.dao.AttrGroupDao">
 
-	<!-- 可根据自己的需求，是否要使用 -->
+    <!-- 可根据自己的需求，是否要使用 -->
     <resultMap type="com.okguo.snailmall.product.entity.AttrGroupEntity" id="attrGroupMap">
         <result property="attrGroupId" column="attr_group_id"/>
         <result property="attrGroupName" column="attr_group_name"/>
@@ -12,6 +12,26 @@
         <result property="icon" column="icon"/>
         <result property="catelogId" column="catelog_id"/>
     </resultMap>
+    <resultMap id="attrMap" type="com.okguo.snailmall.product.vo.SpuItemAttrGroupVo">
+        <result property="groupName" column="groupName" javaType="String"/>
+        <collection property="attrs" ofType="com.okguo.snailmall.product.vo.Attr">
+            <result property="attrName" column="attrName" javaType="String"/>
+            <result property="attrValue" column="attrValue" javaType="String"/>
+        </collection>
+
+    </resultMap>
+
+    <select id="getAttrGroupWithAttrsBySpuIdAndCatelgoryId" resultMap="attrMap">
+        SELECT pag.attr_group_name as groupName,
+               pa.attr_name        as attrName,
+               ppav.attr_value     as attrValue
+        FROM pms_attr_group pag
+                 LEFT JOIN pms_attr_attrgroup_relation paar ON paar.attr_group_id = pag.attr_group_id
+                 LEFT JOIN pms_attr pa ON pa.attr_id = paar.attr_id
+                 LEFT JOIN pms_product_attr_value ppav ON ppav.attr_id = pa.attr_id
+        WHERE pa.catelog_id = #{catalogId}
+          AND ppav.spu_id = #{spuId}
+    </select>
 
 
 </mapper>

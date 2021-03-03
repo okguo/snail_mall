@@ -9,3 +9,46 @@
     3.缓存击穿
         定义：对于设置了过期时间的key，这些key可能会在短时间内被超高并发量访问，是一种非常“热点”的数据，如果这个key在瞬时被超高并发量访问时正好失效，导致所有的查询都走DB
         解决：加锁；大量并发只让一个去查数据库，查询完写入缓存并释放锁，别的查询都先查缓存，若命中则直接返回
+
+
+线程
+    1.构建线程的方式
+        1）、继承Thread类
+        2）、实现Runnable 接口
+        3）、实现 Callable 接口
+        4）、线程池 ExecutorService service = Executors.newFixedThreadPool();
+    2.优缺点
+        1）、2） 无返回值  3）有返回值
+        1）、2）、3） 开销大，资源浪费
+        4）可以资源控制，性能稳定
+    3.线程池 [ExecutorService]
+        1）、创建方式
+            a.Executors
+                Executors.newCachedThreadPool(): core = 0
+                Executors.newFixedThreadPool(10) :指定大小的线程池 max = core 都不可以回收
+                Executors.newScheduledThreadPool(10) :专门处理定时任务的线程池
+                Executors.newSingleThreadExecutor() :单线程的线程池，从队列中取一个执行一个
+            b.ThreadPoolExecutor
+                线程池七大参数：
+                  corePoolSize： 核心线程数[一直存在，除非allowCoreThreadTimeOut] 创建好线程池后就准备就绪的线程数量，准备接收异步任务
+                  maximumPoolSize： 最大线程数  控制最大并发数量
+                  keepAliveTime： 存活时间，对于大于当前核心线程数量的线程，空闲时时间一旦达到存活时间，就会被销毁
+                  unit： 时间单位
+                  workQueue： BlockingQueue<Runnable> workQueue：阻塞队列  如果线程数量大于核心线程数，就会将多余的线程放入阻塞队列中。只要有线程空闲，就会从队列中取出线程来执行
+                  threadFactory： ThreadFactory threadFactory 线程创建工厂
+                  handler： RejectedExecutionHandler handler 如果队列满了，按照指定的拒绝策略拒绝执行任务
+                工作顺序：
+                    a-> 线程池创建，准备好核心线程数量的线程准备执行任务
+                      a1-> 如果进来的线程数量大于核心线程数，则会将多的线程放入阻塞队列workQueue中等待执行,若core空闲，则会自动从阻塞队列中取 （默认LinkedBlockingQueue 最大数量为 Integer最大值 不推荐使用）
+                      a2-> 如果阻塞队列满了，就直接开到最大 maximumPoolSize个线程 来执行
+                      a3-> 如果 最大maximumPoolSize个线程都开了，队列中还是满的 就使用拒绝策略，控制线程进入 (默认拒绝策略:AbortPolicy)
+                      a4-> 队列中空闲等待的线程，如果存活时间大于 keepAliveTime 就会被销毁，减小资源开销
+                      tips：面试题 一个线程池 core:7  max:20  queue:50  100并发进来如何分配
+                            答：7个会立即执行，50个会进入队列，再开13个执行，剩余30个走拒绝策略
+        2）、有点
+            a.降低资源的消耗
+            b.提高响应速度
+            c.提高线程的可管理性
+
+
+

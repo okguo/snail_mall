@@ -31,4 +31,9 @@ public class SpuInfoDescServiceImpl extends ServiceImpl<SpuInfoDescDao, SpuInfoD
         this.baseMapper.insert(descEntity);
     }
 
+    @Override
+    public SpuInfoDescEntity queryBySpuId(Long spuId) {
+        return baseMapper.selectById(spuId);
+    }
+
 }

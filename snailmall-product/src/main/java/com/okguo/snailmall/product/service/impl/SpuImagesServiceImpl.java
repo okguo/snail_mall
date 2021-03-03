@@ -1,5 +1,6 @@
 package com.okguo.snailmall.product.service.impl;
 
+import com.okguo.snailmall.product.entity.SkuImagesEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

@@ -2,6 +2,7 @@ package com.okguo.snailmall.product.vo;
 
 import com.okguo.snailmall.product.entity.SkuImagesEntity;
 import com.okguo.snailmall.product.entity.SkuInfoEntity;
+import com.okguo.snailmall.product.entity.SpuImagesEntity;
 import com.okguo.snailmall.product.entity.SpuInfoDescEntity;
 import lombok.Data;
 
@@ -26,9 +27,7 @@ public class SkuItemVo {
     //5、获取spu的规格参数信息。
     List<SpuItemAttrGroupVo> groupAttrs;
 
-    SeckillInfoVo seckillInfo;//当前商品的秒杀优惠信息
-
-
+    SeckillInfoVo secKillInfo;//当前商品的秒杀优惠信息
 
 
 }

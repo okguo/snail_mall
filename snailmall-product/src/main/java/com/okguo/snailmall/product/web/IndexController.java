@@ -48,9 +48,6 @@ public class IndexController {
 
         RLock lock = redisson.getLock("my-lock");
         lock.lock();
-
-
-
         return "hello";
     }
 
