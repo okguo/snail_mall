@@ -1,6 +1,7 @@
 package com.okguo.snailmall.thridparty;
 
 import com.aliyun.oss.OSSClient;
+import com.okguo.snailmall.thridparty.component.SmsComponent;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,6 +16,9 @@ class SnailmallThirdPartyApplicationTests {
 	@Autowired
 	private OSSClient ossClient;
 
+	@Autowired
+	private SmsComponent smsComponent;
+
 	@Test
 	void testFileUpload() throws FileNotFoundException {
 		InputStream inputStream = new FileInputStream("D:\\tools\\1.jpg");
@@ -24,6 +28,7 @@ class SnailmallThirdPartyApplicationTests {
 
 	@Test
 	void contextLoads() {
+		System.out.println(smsComponent.sendSmsCode("17342067045", "334455"));
 	}
 
 }
