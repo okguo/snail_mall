@@ -10,4 +10,5 @@ snailmall-product 8084
 snailmall-third-party  8085
 snailmall-ware    8086
 snailmall-elasticsearch 9090
+snailmall-auth-server  9091
 snailmall-gateway  88

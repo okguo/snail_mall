@@ -48,3 +48,8 @@ spring:
           predicates:
             - Host=search.snailmall.com
 
+        - id: snailmall_auth_router
+          uri: lb://snailmall-auth-server
+          predicates:
+            - Host=auth.snailmall.com
+

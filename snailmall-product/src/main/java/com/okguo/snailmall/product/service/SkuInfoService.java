@@ -7,6 +7,7 @@ import com.okguo.snailmall.product.vo.SkuItemVo;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * sku信息
@@ -25,6 +26,6 @@ public interface SkuInfoService extends IService<SkuInfoEntity> {
 
     List<SkuInfoEntity> querySkuInfosBySpuId(Long spuId);
 
-    SkuItemVo queryInfo(Long skuId);
+    SkuItemVo queryInfo(Long skuId) throws ExecutionException, InterruptedException;
 }
 

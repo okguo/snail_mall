@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.concurrent.ExecutionException;
+
 /**
  * @Description:
  * @Author: Guoyongfu
@@ -24,7 +26,7 @@ public class ItemController {
     SkuInfoService skuInfoService;
 
     @GetMapping("/{skuId}.html")
-    public String skuItem(@PathVariable("skuId") Long skuId, Model model) {
+    public String skuItem(@PathVariable("skuId") Long skuId, Model model) throws ExecutionException, InterruptedException {
 
         SkuItemVo skuItemVo = skuInfoService.queryInfo(skuId);
         model.addAttribute("item", skuItemVo);
