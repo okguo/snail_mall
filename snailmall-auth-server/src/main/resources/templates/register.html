@@ -5962,13 +5962,15 @@ Cookie</span>是由网页服务器存放在您的访问设备上的文本文件�
 </header>
 <section>
     <form action="/register" method="post" class="one">
+        <div class="tips" style="color: red"
+             th:text="${errors != null?(#maps.containsKey(errors,'msg')?errors.msg:''):''}">
+        </div>
         <div class="register-box">
             <label class="username_label">用 户 名
                 <input name="username" maxlength="20" type="text" placeholder="您的用户名和登录名">
             </label>
             <div class="tips" style="color: red"
-				 th:text="${errors != null?(#maps.containsKey(errors,'username')?errors.username:''):''}">
-
+                 th:text="${errors != null?(#maps.containsKey(errors,'username')?errors.username:''):''}">
             </div>
         </div>
         <div class="register-box">
@@ -5976,7 +5978,7 @@ Cookie</span>是由网页服务器存放在您的访问设备上的文本文件�
                 <input name="password" maxlength="20" type="password" placeholder="建议至少使用两种字符组合">
             </label>
             <div class="tips" style="color: red"
-				 th:text="${errors != null?(#maps.containsKey(errors,'password')?errors.password:''):''}">
+                 th:text="${errors != null?(#maps.containsKey(errors,'password')?errors.password:''):''}">
 
             </div>
         </div>
@@ -5994,7 +5996,7 @@ Cookie</span>是由网页服务器存放在您的访问设备上的文本文件�
                 <input name="mobile" id="mobileNum" class="phone" maxlength="20" type="text" placeholder="建议使用常用手机">
             </label>
             <div class="tips" style="color: red"
-				 th:text="${errors != null?(#maps.containsKey(errors,'mobile')?errors.mobile:''):''}">
+                 th:text="${errors != null?(#maps.containsKey(errors,'mobile')?errors.mobile:''):''}">
 
             </div>
         </div>
@@ -6002,10 +6004,10 @@ Cookie</span>是由网页服务器存放在您的访问设备上的文本文件�
             <label class="other_label">验 证 码
                 <input name="code" maxlength="20" type="text" placeholder="请输入验证码" class="caa">
             </label>
-			<div class="tips" style="color: red"
-				 th:text="${errors != null?(#maps.containsKey(errors,'code')?errors.code:''):''}">
+            <div class="tips" style="color: red"
+                 th:text="${errors != null?(#maps.containsKey(errors,'code')?errors.code:''):''}">
 
-			</div>
+            </div>
             <a id="senCode">发送验证码</a>
         </div>
         <div class="arguement">
@@ -6267,11 +6269,11 @@ Cookie</span>是由网页服务器存放在您的访问设备上的文本文件�
         if ($(this).hasClass("disabled")) {
         } else {
             var mobile = $("#mobileNum").val();
-            $.get("/sms/sendCode?mobile=" + mobile,function (data) {
-				if (data.code != 0) {
-					alert(data.data);
-				}
-			});
+            $.get("/sms/sendCode?mobile=" + mobile, function (data) {
+                if (data.code != 0) {
+                    alert(data.data);
+                }
+            });
             timeoutChangeStyle();
         }
     })

@@ -1,8 +1,10 @@
 package com.okguo.snailmall.auth.web;
 
+import com.alibaba.fastjson.TypeReference;
 import com.okguo.common.exception.BizCodeEnum;
 import com.okguo.common.utils.R;
 import com.okguo.snailmall.auth.constant.AuthServerConstant;
+import com.okguo.snailmall.auth.feign.MemberFeignService;
 import com.okguo.snailmall.auth.feign.ThirdPartFeignService;
 import com.okguo.snailmall.auth.vo.UserRegisterVO;
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +38,8 @@ public class LoginController {
     private ThirdPartFeignService thirdPartFeignService;
     @Autowired
     private StringRedisTemplate redisTemplate;
+    @Autowired
+    private MemberFeignService memberFeignService;
 
     @ResponseBody
     @GetMapping("/sms/sendCode")
@@ -72,18 +76,31 @@ public class LoginController {
         //校验验证码
         String redisCode = redisTemplate.opsForValue().get(AuthServerConstant.SMS_CODE_CACHE_PREFIX + vo.getMobile());
         if (StringUtils.isNotEmpty(redisCode)) {
-
-
-
+            String code = redisCode.split("_")[0];
+            if (code.equals(vo.getCode())) {
+                redisTemplate.delete(AuthServerConstant.SMS_CODE_CACHE_PREFIX + vo.getMobile());
+                R register = memberFeignService.register(vo);
+                if (register.getCode() == 0) {
+                    return "redirect:/login.html";
+                } else {
+                    Map<String, String> errors = new HashMap<>();
+                    errors.put("msg", register.getData(new TypeReference<String>() {
+                    }));
+                    attributes.addFlashAttribute("errors", errors);
+                    return "redirect:http://auth.snailmall.com/reg.html";
+                }
+            }else {
+                Map<String, String> errors = new HashMap<>();
+                errors.put("code", "验证码错误");
+                attributes.addFlashAttribute("errors", errors);
+                return "redirect:http://auth.snailmall.com/reg.html";
+            }
         } else {
             Map<String, String> errors = new HashMap<>();
             errors.put("code", "验证码已失效");
             attributes.addFlashAttribute("errors", errors);
             return "redirect:http://auth.snailmall.com/reg.html";
         }
-
-
-        return "redirect:/login.html";
     }
 
 
