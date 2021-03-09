@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.okguo.common.exception.BizCodeEnum;
 import com.okguo.common.utils.R;
-import com.okguo.snailmall.auth.constant.AuthServerConstant;
+import com.okguo.common.constant.AuthServerConstant;
 import com.okguo.snailmall.auth.feign.MemberFeignService;
 import com.okguo.snailmall.auth.feign.ThirdPartFeignService;
 import com.okguo.snailmall.auth.vo.MemberVO;
@@ -105,6 +105,15 @@ public class LoginController {
         }
     }
 
+    @GetMapping("/login.html")
+    public String loginPage(HttpSession session) {
+        Object attribute = session.getAttribute(AuthServerConstant.LOGIN_USER_SESSION);
+        if (attribute != null) {
+            return "redirect:http://snailmall.com";
+        }
+        return "login";
+    }
+
     @PostMapping("/login")
     public String login(UserLoginVO vo, RedirectAttributes attributes, HttpSession session) {
         R login = memberFeignService.login(vo);
@@ -117,7 +126,7 @@ public class LoginController {
         } else {
             MemberVO data = login.getData(new TypeReference<MemberVO>() {
             });
-            session.setAttribute("loginUser", data);
+            session.setAttribute(AuthServerConstant.LOGIN_USER_SESSION, data);
             log.info("LoginController->login:" + JSON.toJSONString(data));
             return "redirect:http://snailmall.com";
         }

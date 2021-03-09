@@ -51,6 +51,8 @@
             c.提高线程的可管理性
 
 Spring Session 原理
+    1.@EnableRedisHttpSession注解
+
 
 
 

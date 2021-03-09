@@ -1,4 +1,4 @@
-package com.okguo.snailmall.auth.constant;
+package com.okguo.common.constant;
 
 /**
  * @Description:
@@ -8,5 +8,6 @@ package com.okguo.snailmall.auth.constant;
 public class AuthServerConstant {
 
     public static final String SMS_CODE_CACHE_PREFIX = "sms:code:";
+    public static final String LOGIN_USER_SESSION = "loginUser";
 
 }
