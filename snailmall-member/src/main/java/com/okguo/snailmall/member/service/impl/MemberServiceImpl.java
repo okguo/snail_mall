@@ -4,6 +4,7 @@ import com.okguo.common.exception.BizCodeEnum;
 import com.okguo.common.exception.RRException;
 import com.okguo.snailmall.member.entity.MemberLevelEntity;
 import com.okguo.snailmall.member.service.MemberLevelService;
+import com.okguo.snailmall.member.vo.UserLoginVO;
 import com.okguo.snailmall.member.vo.UserRegisterVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -48,13 +49,26 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         this.checkUsernameExist(param.getUsername());
         this.checkMobileExist(param.getMobile());
         memberEntity.setUsername(param.getUsername());
-        memberEntity.setPassword(param.getPassword());
+        memberEntity.setMobile(param.getMobile());
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String encode = passwordEncoder.encode(param.getPassword());
         memberEntity.setPassword(encode);
 
         baseMapper.insert(memberEntity);
+    }
+
+    @Override
+    public MemberEntity login(UserLoginVO param) {
+        MemberEntity memberEntity = baseMapper.selectOne(new QueryWrapper<MemberEntity>().eq("username", param.getUsername()).or().eq("mobile", param.getUsername()));
+        if (memberEntity != null) {
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            boolean matches = passwordEncoder.matches(param.getPassword(), memberEntity.getPassword());
+            if (matches) {
+                return memberEntity;
+            }
+        }
+        return null;
     }
 
     private void checkMobileExist(String mobile) throws RRException {

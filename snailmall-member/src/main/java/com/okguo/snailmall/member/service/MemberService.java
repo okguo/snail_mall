@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.okguo.common.exception.RRException;
 import com.okguo.common.utils.PageUtils;
 import com.okguo.snailmall.member.entity.MemberEntity;
+import com.okguo.snailmall.member.vo.UserLoginVO;
 import com.okguo.snailmall.member.vo.UserRegisterVO;
 
+import java.lang.reflect.Member;
 import java.util.Map;
 
 /**
@@ -20,5 +22,7 @@ public interface MemberService extends IService<MemberEntity> {
     PageUtils queryPage(Map<String, Object> params);
 
     void register(UserRegisterVO param) throws RRException;
+
+    MemberEntity login(UserLoginVO param);
 }
 

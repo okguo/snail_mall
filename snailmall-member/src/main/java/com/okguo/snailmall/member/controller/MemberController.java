@@ -7,6 +7,7 @@ import java.util.Objects;
 import com.okguo.common.exception.BizCodeEnum;
 import com.okguo.common.exception.RRException;
 import com.okguo.snailmall.member.feign.CouponFeignService;
+import com.okguo.snailmall.member.vo.UserLoginVO;
 import com.okguo.snailmall.member.vo.UserRegisterVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -73,6 +74,16 @@ public class MemberController {
             }
         }
         return R.ok();
+    }
+
+
+    @PostMapping("/login")
+    public R login(@RequestBody UserLoginVO param) {
+        MemberEntity memberEntity = memberService.login(param);
+        if (memberEntity == null) {
+            return R.error(BizCodeEnum.USER_ACCOUNT_ERROR_EXCEPTION.getCode(), BizCodeEnum.USER_ACCOUNT_ERROR_EXCEPTION.getMsg());
+        }
+        return R.ok(memberEntity);
     }
 
 

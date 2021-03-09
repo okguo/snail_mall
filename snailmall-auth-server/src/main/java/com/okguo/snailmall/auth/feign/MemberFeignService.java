@@ -1,6 +1,7 @@
 package com.okguo.snailmall.auth.feign;
 
 import com.okguo.common.utils.R;
+import com.okguo.snailmall.auth.vo.UserLoginVO;
 import com.okguo.snailmall.auth.vo.UserRegisterVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,4 +17,7 @@ public interface MemberFeignService {
 
     @PostMapping("/member/member/register")
     public R register(@RequestBody UserRegisterVO param);
+
+    @PostMapping("/member/member/login")
+    public R login(@RequestBody UserLoginVO param);
 }

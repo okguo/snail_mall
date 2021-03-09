@@ -95,10 +95,10 @@
             </b>
             <ul>
                 <li>
-                    <a href="http://auth.snailmall.com/login.html">你好，请登录</a>
+                    <a href="http://auth.snailmall.com/login.html">你好，请登录:[[${session.loginUser==null?'---':session.loginUser.username}]]</a>
                 </li>
                 <li>
-                    <a href="http://auth.snailmall.com/reg.html" class="li_2">免费注册</a>
+                    <a href="http://auth.snailmall.com/reg.html" class="li_2">免费注册[[${session.loginUser}]]</a>
                 </li>
                 <span>|</span>
                 <li>
