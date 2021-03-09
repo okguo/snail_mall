@@ -95,10 +95,10 @@
             </b>
             <ul>
                 <li>
-                    <a href="http://auth.snailmall.com/login.html">你好，请登录:[[${session.loginUser==null?'---':session.loginUser.username}]]</a>
+                    <a th:href="${session.loginUser == null?'http://auth.snailmall.com/login.html':''}" th:text="${session.loginUser == null?'你好，请登录':session.loginUser.username}" >你好，请登录:</a>
                 </li>
                 <li>
-                    <a href="http://auth.snailmall.com/reg.html" class="li_2">免费注册[[${session.loginUser}]]</a>
+                    <a th:href="${session.loginUser == null?'http://auth.snailmall.com/reg.html':''}" class="li_2" th:text="${session.loginUser == null?'免费注册':''}">免费注册</a>
                 </li>
                 <span>|</span>
                 <li>
@@ -241,8 +241,8 @@
                         <div class="user_info_show">
                             <p class="">Hi, 欢迎来到!</p>
                             <p>
-                                <a href="/static/#" class="">登录</a>
-                                <a href="/static/#" class="">注册</a>
+                                <a th:href="${session.loginUser == null?'http://auth.snailmall.com/login.html':''}" class="" th:text="${session.loginUser == null?'登录':session.loginUser.username}">登录</a>
+                                <a th:href="${session.loginUser == null?'http://auth.snailmall.com/reg.html':''}" class="" th:text="${session.loginUser == null?'注册':''}">注册</a>
                             </p>
                         </div>
                     </div>
