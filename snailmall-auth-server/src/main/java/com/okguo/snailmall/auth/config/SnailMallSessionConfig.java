@@ -1,6 +1,7 @@
 package com.okguo.snailmall.auth.config;
 
 
+import com.alibaba.fastjson.support.spring.GenericFastJsonRedisSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -26,7 +27,7 @@ public class SnailMallSessionConfig {
 
     @Bean
     public RedisSerializer<Object> springSessionDefaultRedisSerializer() {
-        return new GenericJackson2JsonRedisSerializer();
+        return new GenericFastJsonRedisSerializer();
     }
 
 
