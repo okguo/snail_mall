@@ -1,7 +1,5 @@
-package com.okguo.snailmall.auth.vo;
+package com.okguo.common.vo;
 
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -18,6 +16,7 @@ import lombok.Data;
 public class MemberVO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	private Long id;
 	/**
 	 * 会员等级id
 	 */

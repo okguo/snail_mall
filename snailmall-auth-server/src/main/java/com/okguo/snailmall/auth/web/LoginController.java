@@ -7,7 +7,7 @@ import com.okguo.common.utils.R;
 import com.okguo.common.constant.AuthServerConstant;
 import com.okguo.snailmall.auth.feign.MemberFeignService;
 import com.okguo.snailmall.auth.feign.ThirdPartFeignService;
-import com.okguo.snailmall.auth.vo.MemberVO;
+import com.okguo.common.vo.MemberVO;
 import com.okguo.snailmall.auth.vo.UserLoginVO;
 import com.okguo.snailmall.auth.vo.UserRegisterVO;
 import lombok.extern.slf4j.Slf4j;
