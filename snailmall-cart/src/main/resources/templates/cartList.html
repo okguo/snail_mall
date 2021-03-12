@@ -20,8 +20,8 @@
                 </li>
             </ul>
             <ul class="header-right">
-                <li><a href="/static/cart登录页面\index.html" style="color: red;">你好，请登录</a></li>
-                <li><a href="/static/cart注册页面\index.html">免费注册</a></li>
+                <li><a style="color: red" th:href="${session.loginUser == null?'http://auth.snailmall.com/login.html':''}" th:text="${session.loginUser == null?'你好请登录':session.loginUser.username}">登录</a></li>
+                <li><a th:href="${session.loginUser == null?'http://auth.snailmall.com/reg.html':''}" class="" th:text="${session.loginUser == null?'注册':''}">免费注册</a></li>
                 <li class="spacer"></li>
                 <li><a href="">我的订单</a></li>
                 <li class="spacer"></li>
@@ -36,8 +36,8 @@
     <div class="one_sousuo">
         <div class="one_search_top">
             <div class="one_top_left">
-                <a href="/static/cart" class="one_left_logo"><img src="/static/cart/img/logo1.jpg"></a>
-                <a href="#" class="one_left_link">购物车</a>
+                <a href="http://snailmall.com" class="one_left_logo"><img src="/static/cart/img/logo1.jpg"></a>
+                <a class="one_left_link">购物车</a>
             </div>
             <div class="one_top_right">
                 <input type="text" class="one_right_txt" placeholder="" onfocus="this.placeholder=''"
@@ -45,7 +45,7 @@
                 <input type="button" value="搜索" class="one_right_btn">
             </div>
         </div>
-        <div class="one_search_load" href="/static/cartif="${userId}==null">
+        <div class="one_search_load" href="">
             <img src="/static/cart/img/shop_07.jpg" class="one_load_wraing">
             <span>您还没有登录！登录后购物车的商品将保存到您账号中</span>
             <a href="#"><input type="button" onclick="login()" value="立即登录" class="one_load_btn"></a>
@@ -74,35 +74,32 @@
 
         <div class="One_ShopCon">
             <ul>
-                <li href="/static/carteach="cartInfo:${cartList}">
+                <li href="/static/carteach">
                     <div></div>
 
                     <div>
                         <ol>
-                            <li><input type="checkbox" class="check" href="/static/cartvalue="${cartInfo.skuId}"
-                                       onchange="checkSku(this)"
-                                       href="/static/cartchecked="(${cartInfo.isChecked}==1)?'true':'false'"/></li>
+                            <li><input type="checkbox" class="check" /></li>
                             <li>
-                                <dt><img href="/static/cartsrc="/static/cart/${cartInfo.imgUrl}" src="/static/cart/img\shop1.jpg"
-                                         alt=""></dt>
-                                <dd href="/static/cartonclick="'toItem('+${cartInfo.skuId}+')'">
+                                <dt><img href="/static/cartsrc" alt=""></dt>
+                                <dd href="/static/cartonclick">
                                     <p>
-                                        <span href="/static/carttext="${cartInfo.skuName}">TCL 55A950C 55英寸32核</span>
+                                        <span href="/static/carttext">TCL 55A950C 55英寸32核</span>
                                     </p>
                                 </dd>
                             </li>
                             <li>
-                                <p class="dj" href="/static/carttext="'￥'+${cartInfo.skuPrice}">4599.00</p>
+                                <p class="dj" href="/static/carttext">4599.00</p>
                             </li>
                             <li>
                                 <p>
                                     <span>-</span>
-                                    <span href="/static/carttext="${cartInfo.skuNum}">5</span>
+                                    <span href="/static/carttext">5</span>
                                     <span>+</span>
                                 </p>
                             </li>
                             <li style="font-weight:bold">
-                                <p class="zj" href="/static/carttext="'￥'+${cartInfo.totalPrice}">￥22995.00</p>
+                                <p class="zj" href="/static/carttext">￥22995.00</p>
                             </li>
                             <li>
                                 <p>删除</p>

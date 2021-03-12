@@ -1,11 +1,12 @@
 package com.okguo.snailmall.cart.intercept;
 
+import com.alibaba.fastjson.JSON;
 import com.okguo.common.constant.AuthServerConstant;
 import com.okguo.common.constant.CartConstant;
 import com.okguo.common.vo.MemberVO;
 import com.okguo.snailmall.cart.vo.UserInfoTo;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -20,6 +21,7 @@ import java.util.UUID;
  * @Author: Guoyongfu
  * @Date: 2021/03/11 16:01
  */
+@Slf4j
 public class CartIntercept implements HandlerInterceptor {
 
     public static ThreadLocal<UserInfoTo> threadLocal = new ThreadLocal<>();
@@ -30,6 +32,7 @@ public class CartIntercept implements HandlerInterceptor {
         UserInfoTo userInfo = new UserInfoTo();
 
         HttpSession session = request.getSession();
+        log.info("CartIntercept->preHandle" + JSON.toJSONString(session.getAttribute(AuthServerConstant.LOGIN_USER_SESSION)));
         MemberVO memberVO = (MemberVO) session.getAttribute(AuthServerConstant.LOGIN_USER_SESSION);
         if (memberVO != null) {
             userInfo.setUserId(memberVO.getId());
