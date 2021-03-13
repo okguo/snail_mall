@@ -1,6 +1,7 @@
 package com.okguo.snailmall.cart.intercept;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.okguo.common.constant.AuthServerConstant;
 import com.okguo.common.constant.CartConstant;
 import com.okguo.common.vo.MemberVO;
@@ -33,7 +34,8 @@ public class CartIntercept implements HandlerInterceptor {
 
         HttpSession session = request.getSession();
         log.info("CartIntercept->preHandle" + JSON.toJSONString(session.getAttribute(AuthServerConstant.LOGIN_USER_SESSION)));
-        MemberVO memberVO = (MemberVO) session.getAttribute(AuthServerConstant.LOGIN_USER_SESSION);
+        MemberVO memberVO = JSONObject.parseObject(JSON.toJSONString(session.getAttribute(AuthServerConstant.LOGIN_USER_SESSION)), MemberVO.class);
+//        MemberVO memberVO = (MemberVO) session.getAttribute();
         if (memberVO != null) {
             userInfo.setUserId(memberVO.getId());
             Cookie[] cookies = request.getCookies();

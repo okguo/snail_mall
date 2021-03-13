@@ -1,6 +1,7 @@
 package com.okguo.snailmall.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,14 @@ public class SkuSaleAttrValueController {
         PageUtils page = skuSaleAttrValueService.queryPage(params);
 
         return R.ok().put("page", page);
+    }
+
+    @RequestMapping("/getSkuSaleAttrStringList/{skuId}")
+//    @RequiresPermissions("product:skusaleattrvalue:list")
+    public R getSkuSaleAttrStringList(@PathVariable Long skuId){
+        List<String> stringList = skuSaleAttrValueService.getSkuSaleAttrStringList(skuId);
+
+        return R.ok().put("skuSaleAttrs", stringList);
     }
 
 
