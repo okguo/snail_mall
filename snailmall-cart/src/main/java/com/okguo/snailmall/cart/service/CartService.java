@@ -1,5 +1,6 @@
 package com.okguo.snailmall.cart.service;
 
+import com.okguo.snailmall.cart.vo.Cart;
 import com.okguo.snailmall.cart.vo.CartItem;
 
 import java.util.concurrent.ExecutionException;
@@ -11,4 +12,9 @@ import java.util.concurrent.ExecutionException;
  */
 public interface CartService {
     CartItem addToCart(Long skuId, Integer num) throws ExecutionException, InterruptedException;
+
+    CartItem queryBySkuId(Long skuId);
+
+    Cart getCart();
+
 }
