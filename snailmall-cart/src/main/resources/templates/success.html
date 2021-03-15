@@ -26,8 +26,10 @@
 
         <ul class="hd_wrap_right">
             <li class="forel">
-                <a th:href="${session.loginUser == null?'http://auth.snailmall.com/login.html':''}" th:text="${session.loginUser == null?'你好，请登录':session.loginUser.username}" >你好，请登录:</a>
-                <a th:href="${session.loginUser == null?'http://auth.snailmall.com/reg.html':''}" class="" th:text="${session.loginUser == null?'注册':''}">免费注册</a>
+                <a th:href="${session.loginUser == null?'http://auth.snailmall.com/login.html':''}"
+                   th:text="${session.loginUser == null?'你好，请登录':session.loginUser.username}">你好，请登录:</a>
+                <a th:href="${session.loginUser == null?'http://auth.snailmall.com/reg.html':''}" class=""
+                   th:text="${session.loginUser == null?'注册':''}">免费注册</a>
             </li>
             <li class="spacer"></li>
 
@@ -67,13 +69,13 @@
                             <h3 class="ftx-02">商品已成功加入购物车</h3></div>
                         <div class="p-item">
                             <div class="p-img">
-                                <a th:href="'http://item.snailmall.com/'+${item.skuId}+'.html'" target="_blank">
+                                <a target="_blank">
                                     <img style="height: 60px;width:60px;" th:src="${item.image}">
                                 </a>
                             </div>
                             <div class="p-info">
                                 <div class="p-name">
-                                    <a th:href="'http://item.gmall.com/'+${item.skuId}+'.html'"
+                                    <a th:href="'http://item.snailmall.com/'+${item.skuId}+'.html'"
                                        th:text="${item.title}">TCL 55A950C 55英寸32核人工智能 HDR曲面超薄4K电视金属机身（枪色）</a>
                                 </div>
                                 <div class="p-extra"><span class="txt" th:text="'数量：'+${item.count}">  数量：1</span></div>
@@ -87,8 +89,9 @@
                         </div>
                         <div class="clr"></div>
                         <div class="bg_shop">
-                            <a class="btn-tobback" href="http://item.snailmall.com/9.html">查看商品详情</a>
-                            <a class="btn-addtocart" href="http://cart.snailmall.com/cart.html" id="GotoShoppingCart"><b></b>去购物车结算</a>
+                            <a class="btn-tobback" th:href="'http://item.snailmall.com/'+${item.skuId}+'.html'">查看商品详情</a>
+                            <a class="btn-addtocart" href="http://cart.snailmall.com/cart.html"
+                               id="GotoShoppingCart"><b></b>去购物车结算</a>
                         </div>
                     </div>
                 </div>

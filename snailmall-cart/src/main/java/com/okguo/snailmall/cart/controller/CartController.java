@@ -32,7 +32,7 @@ public class CartController {
 
 
     @GetMapping("cart.html")
-    public String cartPage(HttpSession session,Model model) {
+    public String cartPage(Model model) throws ExecutionException, InterruptedException {
         Cart cart = cartService.getCart();
         model.addAttribute("cart", cart);
         return "cartList";
@@ -41,14 +41,14 @@ public class CartController {
     @GetMapping("addToCart")
     public String addToCart(@RequestParam("skuId") Long skuId,
                             @RequestParam("num") Integer num,
-                            RedirectAttributes model) throws ExecutionException, InterruptedException {
+                            RedirectAttributes ra) throws ExecutionException, InterruptedException {
         cartService.addToCart(skuId, num);
-        model.addAttribute("skuId", skuId);
+        ra.addAttribute("skuId", skuId);
         return "redirect:http://cart.snailmall.com/addToCartSuccess.html";
     }
 
     @GetMapping("addToCartSuccess.html")
-    public String addToCartSuccess(@RequestParam("skuId") Long skuId,Model model) {
+    public String addToCartSuccess(@RequestParam("skuId") Long skuId, Model model) {
         CartItem cartItem = cartService.queryBySkuId(skuId);
         model.addAttribute("item", cartItem);
         return "success";

@@ -20,8 +20,11 @@
                 </li>
             </ul>
             <ul class="header-right">
-                <li><a style="color: red" th:href="${session.loginUser == null?'http://auth.snailmall.com/login.html':''}" th:text="${session.loginUser == null?'你好请登录':session.loginUser.username}">登录</a></li>
-                <li><a th:href="${session.loginUser == null?'http://auth.snailmall.com/reg.html':''}" class="" th:text="${session.loginUser == null?'注册':''}">免费注册</a></li>
+                <li><a style="color: red"
+                       th:href="${session.loginUser == null?'http://auth.snailmall.com/login.html':''}"
+                       th:text="${session.loginUser == null?'你好请登录':session.loginUser.username}">登录</a></li>
+                <li><a th:href="${session.loginUser == null?'http://auth.snailmall.com/reg.html':''}" class=""
+                       th:text="${session.loginUser == null?'注册':''}">免费注册</a></li>
                 <li class="spacer"></li>
                 <li><a href="">我的订单</a></li>
                 <li class="spacer"></li>
@@ -73,33 +76,32 @@
         </div>
 
         <div class="One_ShopCon">
-            <ul>
+            <ul th:each="item:${cart.items}">
                 <li href="/static/carteach">
                     <div></div>
-
                     <div>
                         <ol>
-                            <li><input type="checkbox" class="check" /></li>
+                            <li><input type="checkbox" class="check"/></li>
                             <li>
-                                <dt><img href="/static/cartsrc" alt=""></dt>
-                                <dd href="/static/cartonclick">
+                                <dt><img th:src="${item.image}" alt=""></dt>
+                                <dd th:href="'http://item.snailmall.com/'+${item.skuId}+'.html'">
                                     <p>
-                                        <span href="/static/carttext">TCL 55A950C 55英寸32核</span>
+                                        <span th:text="${item.title}">TCL 55A950C 55英寸32核</span>
                                     </p>
                                 </dd>
                             </li>
                             <li>
-                                <p class="dj" href="/static/carttext">4599.00</p>
+                                <p class="dj" th:text="${item.price}">4599.00</p>
                             </li>
                             <li>
                                 <p>
                                     <span>-</span>
-                                    <span href="/static/carttext">5</span>
+                                    <span th:text="${item.count}">5</span>
                                     <span>+</span>
                                 </p>
                             </li>
                             <li style="font-weight:bold">
-                                <p class="zj" href="/static/carttext">￥22995.00</p>
+                                <p class="zj" th:text="${item.totalPrice}">￥22995.00</p>
                             </li>
                             <li>
                                 <p>删除</p>
@@ -167,7 +169,7 @@
             </div>
             <div>
                 <ol>
-                    <li>总价:<span style="color:#e64346;font-weight:bold;font-size:16px;" class="fnt">￥0.00</span></li>
+                    <li>总价:<span style="color:#e64346;font-weight:bold;font-size:16px;" class="fnt" th:text="${cart.totalAmount}">￥0.00</span></li>
 
                 </ol>
             </div>

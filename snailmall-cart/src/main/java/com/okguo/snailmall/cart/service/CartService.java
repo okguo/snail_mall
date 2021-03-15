@@ -15,6 +15,8 @@ public interface CartService {
 
     CartItem queryBySkuId(Long skuId);
 
-    Cart getCart();
+    Cart getCart() throws ExecutionException, InterruptedException;
+
+    public void clearCart(String cartKey);
 
 }

@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.okguo.common.utils.R;
-import com.okguo.snailmall.cart.config.MyThreadPoolConfig;
 import com.okguo.snailmall.cart.feign.ProductFeignService;
 import com.okguo.snailmall.cart.intercept.CartIntercept;
 import com.okguo.snailmall.cart.service.CartService;
@@ -16,10 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundHashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +76,7 @@ public class CartServiceImpl implements CartService {
         } else {
             CartItem cartItem = JSONObject.parseObject(res, CartItem.class);
             cartItem.setCount(cartItem.getCount() + num);
-            hashOps.put(skuId, JSON.toJSONString(cartItem));
+            hashOps.put(skuId.toString(), JSON.toJSONString(cartItem));
 
             return cartItem;
         }
@@ -93,22 +90,34 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public Cart getCart() {
+    public Cart getCart() throws ExecutionException, InterruptedException {
         Cart cart = new Cart();
         UserInfoTo userInfoTo = CartIntercept.threadLocal.get();
         String cartKey;
+        List<CartItem> cartItems;
         if (userInfoTo.getUserId() != null) {
             cartKey = CART_PREFIX + userInfoTo.getUserId();
+            List<CartItem> tempCartItems = changeCartItemsFromRedis(CART_PREFIX + userInfoTo.getUserKey());
+            if (tempCartItems.size() > 0) {
+                for (CartItem tempCartItem : tempCartItems) {
+                    addToCart(tempCartItem.getSkuId(), tempCartItem.getCount());
+                }
+            }
+            this.clearCart(CART_PREFIX + userInfoTo.getUserKey());
         } else {
             cartKey = CART_PREFIX + userInfoTo.getUserKey();
         }
-        List<CartItem> cartItems = changeCartItemsFromRedis(cartKey);
+        cartItems = changeCartItemsFromRedis(cartKey);
         cart.setItems(cartItems);
-//TODO
         return cart;
     }
 
-    private List<CartItem> changeCartItemsFromRedis( String cartKey) {
+    @Override
+    public void clearCart(String cartKey) {
+        redisTemplate.delete(cartKey);
+    }
+
+    private List<CartItem> changeCartItemsFromRedis(String cartKey) {
         List<Object> cartItemStrings = redisTemplate.boundHashOps(cartKey).values();
         if (cartItemStrings != null && cartItemStrings.size() > 0) {
             return  cartItemStrings.stream().map(obj -> JSONObject.parseObject((String) obj, CartItem.class)).collect(Collectors.toList());
