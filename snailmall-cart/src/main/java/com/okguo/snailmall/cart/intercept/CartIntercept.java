@@ -7,7 +7,7 @@ import com.okguo.common.constant.CartConstant;
 import com.okguo.common.vo.MemberVO;
 import com.okguo.snailmall.cart.vo.UserInfoTo;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -30,32 +30,34 @@ public class CartIntercept implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-        UserInfoTo userInfo = new UserInfoTo();
+        UserInfoTo userInfoTo = new UserInfoTo();
 
         HttpSession session = request.getSession();
-        log.info("CartIntercept->preHandle" + JSON.toJSONString(session.getAttribute(AuthServerConstant.LOGIN_USER_SESSION)));
-        MemberVO memberVO = JSONObject.parseObject(JSON.toJSONString(session.getAttribute(AuthServerConstant.LOGIN_USER_SESSION)), MemberVO.class);
-//        MemberVO memberVO = (MemberVO) session.getAttribute();
-        if (memberVO != null) {
-            userInfo.setUserId(memberVO.getId());
-            Cookie[] cookies = request.getCookies();
-            if (cookies != null && cookies.length > 0) {
-                for (Cookie cookie : cookies) {
-                    String name = cookie.getName();
-                    if (name.equals(AuthServerConstant.LOGIN_USER_SESSION)) {
-                        userInfo.setUserKey(cookie.getValue());
-                        userInfo.setTempUser(true);
-                    }
+        MemberVO member = JSONObject.parseObject(JSON.toJSONString(session.getAttribute(AuthServerConstant.LOGIN_USER_SESSION)), MemberVO.class);
+        if(member != null){
+            //用户登录
+            userInfoTo.setUserId(member.getId());
+        }
+
+        Cookie[] cookies = request.getCookies();
+        if(cookies!=null && cookies.length>0){
+            for (Cookie cookie : cookies) {
+                //user-key
+                String name = cookie.getName();
+                if(name.equals(CartConstant.TEP_USER_COOKIE_NAME)){
+                    userInfoTo.setUserKey(cookie.getValue());
+                    userInfoTo.setTempUser(true);
                 }
             }
         }
 
-        if (StringUtils.isEmpty(userInfo.getUserKey())) {
+        //如果没有临时用户一定分配一个临时用户
+        if(StringUtils.isEmpty(userInfoTo.getUserKey())){
             String uuid = UUID.randomUUID().toString();
-            userInfo.setUserKey(uuid);
+            userInfoTo.setUserKey(uuid);
         }
-
-        threadLocal.set(userInfo);
+        //目标方法执行之前
+        threadLocal.set(userInfoTo);
         return true;
     }
 

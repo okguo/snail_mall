@@ -31,6 +31,25 @@ public class CartController {
     private CartService cartService;
 
 
+    @GetMapping("checkItem")
+    public String checkItem(@RequestParam("skuId") Long skuId, @RequestParam("check") Integer check) {
+        cartService.checkItem(skuId, check);
+        return "redirect:http://cart.snailmall.com/cart.html";
+    }
+
+    @GetMapping("checkNum")
+    public String checkNum(@RequestParam("skuId") Long skuId, @RequestParam("num") Integer num) {
+        cartService.checkNum(skuId, num);
+        return "redirect:http://cart.snailmall.com/cart.html";
+    }
+
+    @GetMapping("deleteItem")
+    public String deleteItem(@RequestParam("skuId") Long skuId) {
+        cartService.deleteItem(skuId);
+        return "redirect:http://cart.snailmall.com/cart.html";
+    }
+
+
     @GetMapping("cart.html")
     public String cartPage(Model model) throws ExecutionException, InterruptedException {
         Cart cart = cartService.getCart();

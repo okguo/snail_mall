@@ -117,11 +117,33 @@ public class CartServiceImpl implements CartService {
         redisTemplate.delete(cartKey);
     }
 
+    @Override
+    public void checkItem(Long skuId, Integer check) {
+        BoundHashOperations<String, Object, Object> hashOps = getHashOps();
+        CartItem cartItem = queryBySkuId(skuId);
+        cartItem.setCheck(check == 1);
+        hashOps.put(skuId.toString(),JSON.toJSONString(cartItem));
+    }
+
+    @Override
+    public void checkNum(Long skuId, Integer num) {
+        BoundHashOperations<String, Object, Object> hashOps = getHashOps();
+        CartItem cartItem = queryBySkuId(skuId);
+        cartItem.setCount(num);
+        hashOps.put(skuId.toString(),JSON.toJSONString(cartItem));
+    }
+
+    @Override
+    public void deleteItem(Long skuId) {
+        BoundHashOperations<String, Object, Object> hashOps = getHashOps();
+        hashOps.delete(skuId.toString());
+    }
+
     private List<CartItem> changeCartItemsFromRedis(String cartKey) {
         List<Object> cartItemStrings = redisTemplate.boundHashOps(cartKey).values();
         if (cartItemStrings != null && cartItemStrings.size() > 0) {
-            return  cartItemStrings.stream().map(obj -> JSONObject.parseObject((String) obj, CartItem.class)).collect(Collectors.toList());
-        }else {
+            return cartItemStrings.stream().map(obj -> JSONObject.parseObject((String) obj, CartItem.class)).collect(Collectors.toList());
+        } else {
             return new ArrayList<>();
         }
     }
