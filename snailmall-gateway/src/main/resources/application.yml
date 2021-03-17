@@ -58,3 +58,8 @@ spring:
           predicates:
             - Host=cart.snailmall.com
 
+        - id: snailmall_order_router
+          uri: lb://snailmall-order
+          predicates:
+            - Host=order.snailmall.com
+
