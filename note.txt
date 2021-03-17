@@ -50,8 +50,12 @@
             b.提高响应速度
             c.提高线程的可管理性
 
-Spring Session 原理
-    1.@EnableRedisHttpSession注解
+RabbitMQ 使用
+    1.引入amqp场景 spring-boot-starter-amqp
+    2.容器中自动配置了 CachingConnectionFactory、RabbitTemplate、AmqpAdmin、RabbitMessagingTemplate
+        配置文件对应 @ConfigurationProperties(prefix = "spring.rabbitmq")
+    3.配置项
+    4.开启RabbitMQ功能
 
 
 
