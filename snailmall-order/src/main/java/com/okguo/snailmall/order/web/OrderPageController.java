@@ -1,6 +1,11 @@
 package com.okguo.snailmall.order.web;
 
+import com.okguo.snailmall.order.service.OrderService;
+import com.okguo.snailmall.order.vo.OrderConfirmVo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
@@ -11,24 +16,35 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class OrderPageController {
 
-    @RequestMapping("confirm")
+    @Autowired
+    private OrderService orderService;
+
+    @GetMapping("confirm")
     private String confirmPage() {
         return "confirm";
     }
 
-    @RequestMapping("detail")
+    @GetMapping("detail")
     private String detailPage() {
         return "detail";
     }
 
-    @RequestMapping("list")
+    @GetMapping("list")
     private String listPage() {
         return "list";
     }
 
-    @RequestMapping("pay")
+    @GetMapping("pay")
     private String payPage() {
         return "pay";
+    }
+
+    @GetMapping("toTrade")
+    public String toTrade(Model model) {
+
+        OrderConfirmVo confirmVo = orderService.confirmOrder();
+        model.addAttribute("orderConfirmData", confirmVo);
+        return "confirm";
     }
 
 }
