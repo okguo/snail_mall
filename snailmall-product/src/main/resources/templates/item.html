@@ -63,7 +63,7 @@
                         th:text="${session.loginUser == null?'你好，请登录':session.loginUser.username}">你好，请登录:</a></li>
                 <li><a th:href="${session.loginUser == null?'http://auth.snailmall.com/reg.html':''}" class=""
                        th:text="${session.loginUser == null?'注册':''}">免费注册</a></li>
-                <li><a href="/static/item/javascript:;" class="aa">我的订单</a> |</li>
+                <li><a href="http://order.snailmall.com/list" class="aa">我的订单</a> |</li>
                 <li class="jingdong"><a href="/static/item/javascript:;">我的京东</a><span
                         class="glyphicon glyphicon-menu-down">|</span>
                     <ol class="jingdong_ol">

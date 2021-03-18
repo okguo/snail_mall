@@ -17,7 +17,7 @@
         <div class="min">
             <ul class="header_ul_left">
                 <li class="glyphicon glyphicon-home">
-                    <a href="/static/order/detail/shouye.html" class="aa">谷粒商城首页</a>
+                    <a href="http://snailmall.com" class="aa">谷粒商城首页</a>
                 </li>
                 <li class="glyphicon glyphicon-map-marker">
                     <a href="/static/order/detail/javascript:;">北京</a>
@@ -132,16 +132,17 @@
             </ul>
             <ul class="header_ul_right">
                 <li style="border: 0;">
-                    <a href="/static/order/detail/denglu.html" class="aa">你好，请登录</a>
+                    <a th:href="${session.loginUser == null?'http://auth.snailmall.com/login.html':''}"
+                       th:text="${session.loginUser == null?'你好，请登录':session.loginUser.username}" class="li_2">你好，请登录</a>
                 </li>
                 <li>
-                    <a href="/static/order/detail/javascript:;" style="color: red;">免费注册</a> |
+                    <a th:href="${session.loginUser == null?'http://auth.snailmall.com/reg.html':''}" th:text="${session.loginUser == null?'免费注册':''}">免费注册</a> |
                 </li>
                 <li>
-                    <a href="/static/order/detail/javascript:;" class="aa">我的订单</a> |
+                    <a href="http://order.snailmall.com/list" class="aa">我的订单</a> |
                 </li>
                 <li class="jingdong" style="width:95px;">
-                    <a href="/static/order/detail/javascript:;">我的谷粒商城</a><span
+                    <a href="http://snailmall.com">我的谷粒商城</a><span
                         class="glyphicon glyphicon-menu-down">|</span>
                     <ol class="jingdong_ol">
                         <li>

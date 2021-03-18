@@ -20,13 +20,17 @@
                 </li>
             </ul>
             <ul class="header-right">
-                <li><a style="color: red"
+                <li>
+                    <a style="color: red"
                        th:href="${session.loginUser == null?'http://auth.snailmall.com/login.html':''}"
-                       th:text="${session.loginUser == null?'你好请登录':session.loginUser.username}">登录</a></li>
-                <li><a th:href="${session.loginUser == null?'http://auth.snailmall.com/reg.html':''}" class=""
-                       th:text="${session.loginUser == null?'注册':''}">免费注册</a></li>
+                       th:text="${session.loginUser == null?'你好请登录':session.loginUser.username}">登录</a>
+                </li>
+                <li>
+                    <a th:href="${session.loginUser == null?'http://auth.snailmall.com/reg.html':''}" class=""
+                       th:text="${session.loginUser == null?'注册':''}">免费注册</a>
+                </li>
                 <li class="spacer"></li>
-                <li><a href="">我的订单</a></li>
+                <li><a href="http://order.snailmall.com/list">我的订单</a></li>
                 <li class="spacer"></li>
             </ul>
             <div style="clear: both;"></div>
@@ -251,7 +255,7 @@
 <script src="/static/cart/js/index.js" charset="utf-8"></script>
 <script type="text/javascript">
     function toTrade() {
-        window.location.href = "http://cart.gmall.com:8087/toTrade";
+        window.location.href = "http://order.snailmall.com/toTrade";
     }
 
     function toItem(skuId) {
@@ -808,6 +812,7 @@
         location.href = "http://cart.snailmall.com/checkNum?skuId=" + skuId + "&num=" + num;
     });
     var deleteSkuId = 0;
+
     function deleteItem() {
         location.href = "http://cart.snailmall.com/deleteItem?skuId=" + deleteSkuId;
     }
