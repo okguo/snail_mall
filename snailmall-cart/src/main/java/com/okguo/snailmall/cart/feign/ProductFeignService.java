@@ -2,8 +2,11 @@ package com.okguo.snailmall.cart.feign;
 
 import com.okguo.common.utils.R;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.math.BigDecimal;
 
 /**
  * @Description:
@@ -18,5 +21,8 @@ public interface ProductFeignService {
 
     @RequestMapping("/product/skusaleattrvalue/getSkuSaleAttrStringList/{skuId}")
     R getSkuSaleAttrStringList(@PathVariable Long skuId);
+
+    @GetMapping("/product/skuinfo/{skuId}/price")
+    BigDecimal getCurrentPrice(@PathVariable("skuId") Long skuId);
 
 }

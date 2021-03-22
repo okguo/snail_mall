@@ -8,6 +8,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.concurrent.ExecutionException;
+
 /**
  * @Description:
  * @Author: Guoyongfu
@@ -40,7 +42,7 @@ public class OrderPageController {
     }
 
     @GetMapping("toTrade")
-    public String toTrade(Model model) {
+    public String toTrade(Model model) throws ExecutionException, InterruptedException {
 
         OrderConfirmVo confirmVo = orderService.confirmOrder();
         model.addAttribute("orderConfirmData", confirmVo);

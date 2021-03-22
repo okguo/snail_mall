@@ -3,6 +3,7 @@ package com.okguo.snailmall.cart.service;
 import com.okguo.snailmall.cart.vo.Cart;
 import com.okguo.snailmall.cart.vo.CartItem;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -24,4 +25,6 @@ public interface CartService {
     void checkNum(Long skuId, Integer num);
 
     void deleteItem(Long skuId);
+
+    List<CartItem> getCurrentUserCartItems(Long memberId);
 }

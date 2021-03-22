@@ -122,7 +122,7 @@ public class CartServiceImpl implements CartService {
         BoundHashOperations<String, Object, Object> hashOps = getHashOps();
         CartItem cartItem = queryBySkuId(skuId);
         cartItem.setCheck(check == 1);
-        hashOps.put(skuId.toString(),JSON.toJSONString(cartItem));
+        hashOps.put(skuId.toString(), JSON.toJSONString(cartItem));
     }
 
     @Override
@@ -130,13 +130,38 @@ public class CartServiceImpl implements CartService {
         BoundHashOperations<String, Object, Object> hashOps = getHashOps();
         CartItem cartItem = queryBySkuId(skuId);
         cartItem.setCount(num);
-        hashOps.put(skuId.toString(),JSON.toJSONString(cartItem));
+        hashOps.put(skuId.toString(), JSON.toJSONString(cartItem));
     }
 
     @Override
     public void deleteItem(Long skuId) {
         BoundHashOperations<String, Object, Object> hashOps = getHashOps();
         hashOps.delete(skuId.toString());
+    }
+
+    @Override
+    public List<CartItem> getCurrentUserCartItems(Long memberId) {
+        UserInfoTo userInfoTo = CartIntercept.threadLocal.get();
+        if (userInfoTo.getUserId() == null) {
+            return new ArrayList<>();
+        }
+        String cartKey = CART_PREFIX + userInfoTo.getUserId();
+        return getCartItems(cartKey).stream()
+                .filter(CartItem::getCheck)
+                .peek(e-> e.setPrice(productFeignService.getCurrentPrice(e.getSkuId())))
+                .collect(Collectors.toList());
+    }
+
+    private List<CartItem> getCartItems(String cartKey) {
+        BoundHashOperations<String, Object, Object> hashOps = redisTemplate.boundHashOps(cartKey);
+        List<Object> values = hashOps.values();
+        if (values != null && values.size() > 0) {
+            return values.stream().map((obj) -> {
+                String str = (String) obj;
+                return JSON.parseObject(str, CartItem.class);
+            }).collect(Collectors.toList());
+        }
+        return new ArrayList<>();
     }
 
     private List<CartItem> changeCartItemsFromRedis(String cartKey) {

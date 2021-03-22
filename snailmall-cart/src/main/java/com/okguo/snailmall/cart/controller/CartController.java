@@ -1,21 +1,19 @@
 package com.okguo.snailmall.cart.controller;
 
-import com.alibaba.fastjson.JSON;
-import com.okguo.common.constant.AuthServerConstant;
-import com.okguo.snailmall.cart.intercept.CartIntercept;
+import com.okguo.common.utils.R;
 import com.okguo.snailmall.cart.service.CartService;
 import com.okguo.snailmall.cart.vo.Cart;
 import com.okguo.snailmall.cart.vo.CartItem;
-import com.okguo.snailmall.cart.vo.UserInfoTo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.http.HttpSession;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -30,6 +28,12 @@ public class CartController {
     @Autowired
     private CartService cartService;
 
+    @ResponseBody
+    @GetMapping("currentUserCartItems")
+    public R currentUserCartItems(@RequestParam("memberId") Long memberId) {
+        List<CartItem> cartItems = cartService.getCurrentUserCartItems(memberId);
+        return R.ok().put("cartItems", cartItems);
+    }
 
     @GetMapping("checkItem")
     public String checkItem(@RequestParam("skuId") Long skuId, @RequestParam("check") Integer check) {
