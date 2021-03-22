@@ -17,6 +17,7 @@ public class OrderItemVo {
     private BigDecimal totalPrice;
 
     private BigDecimal weight;
+    private Boolean hasStock;
 
 
 }

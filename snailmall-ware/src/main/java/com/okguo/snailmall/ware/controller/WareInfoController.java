@@ -1,14 +1,12 @@
 package com.okguo.snailmall.ware.controller;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.okguo.snailmall.ware.vo.FareVo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.okguo.snailmall.ware.entity.WareInfoEntity;
 import com.okguo.snailmall.ware.service.WareInfoService;
@@ -29,6 +27,12 @@ import com.okguo.common.utils.R;
 public class WareInfoController {
     @Autowired
     private WareInfoService wareInfoService;
+
+    @GetMapping("/fee")
+    public R getFee(@RequestParam("addrId") Long addrId){
+        FareVo fareVo = wareInfoService.getFee(addrId);
+        return R.ok(fareVo);
+    }
 
     /**
      * 列表

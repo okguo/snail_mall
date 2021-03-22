@@ -5,18 +5,22 @@ import com.okguo.common.utils.R;
 import com.okguo.common.vo.MemberVO;
 import com.okguo.snailmall.order.feign.CartFeignService;
 import com.okguo.snailmall.order.feign.MemberFeignService;
+import com.okguo.snailmall.order.feign.WareFeignService;
 import com.okguo.snailmall.order.interceptor.LoginUserInterceptor;
 import com.okguo.snailmall.order.vo.MemberAddressVo;
 import com.okguo.snailmall.order.vo.OrderConfirmVo;
 import com.okguo.snailmall.order.vo.OrderItemVo;
+import com.okguo.snailmall.order.vo.SkuStockVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -42,6 +46,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     private CartFeignService cartFeignService;
     @Autowired
     private ThreadPoolExecutor executor;
+    @Autowired
+    private WareFeignService wareFeignService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -77,11 +83,21 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
                 });
                 orderConfirmVo.setItems(cartItems);
             }
+        }, executor).thenRunAsync(() -> {
+            RequestContextHolder.setRequestAttributes(requestAttributes);
+            List<Long> collect = orderConfirmVo.getItems().stream().map(OrderItemVo::getSkuId).collect(Collectors.toList());
+            R r = wareFeignService.hasStock(collect);
+            List<SkuStockVo> data = r.getData("data", new TypeReference<List<SkuStockVo>>() {
+            });
+            if (data != null && data.size() > 0) {
+                Map<Long, Boolean> map = data.stream().collect(Collectors.toMap(SkuStockVo::getSkuId, SkuStockVo::getHasStock));
+                orderConfirmVo.setStocks(map);
+            }
         }, executor);
 
 
         orderConfirmVo.setIntegration(memberVO.getIntegration());
-        CompletableFuture.allOf(addressFuture,orderItemFuture).get();
+        CompletableFuture.allOf(addressFuture, orderItemFuture).get();
 
         return orderConfirmVo;
     }
