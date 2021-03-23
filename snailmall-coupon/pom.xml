@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.okguo.snailmall</groupId>
-	<artifactId>snaillmall-coupon</artifactId>
+	<artifactId>snailmall-coupon</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>snailmall-coupon</name>
 	<description>蜗牛商城-优惠券服务</description>
