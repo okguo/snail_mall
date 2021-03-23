@@ -1,25 +1,31 @@
 package com.okguo.snailmall.order.service.impl;
 
 import com.alibaba.fastjson.TypeReference;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.okguo.common.utils.R;
 import com.okguo.common.vo.MemberVO;
+import com.okguo.snailmall.order.constant.OrderConstant;
+import com.okguo.snailmall.order.entity.OrderItemEntity;
+import com.okguo.snailmall.order.enume.OrderStatusEnum;
 import com.okguo.snailmall.order.feign.CartFeignService;
 import com.okguo.snailmall.order.feign.MemberFeignService;
+import com.okguo.snailmall.order.feign.ProductFeignService;
 import com.okguo.snailmall.order.feign.WareFeignService;
 import com.okguo.snailmall.order.interceptor.LoginUserInterceptor;
-import com.okguo.snailmall.order.vo.MemberAddressVo;
-import com.okguo.snailmall.order.vo.OrderConfirmVo;
-import com.okguo.snailmall.order.vo.OrderItemVo;
-import com.okguo.snailmall.order.vo.SkuStockVo;
+import com.okguo.snailmall.order.to.OrderCreateTo;
+import com.okguo.snailmall.order.vo.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -38,6 +44,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 @Service("orderService")
 public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> implements OrderService {
 
+    private final ThreadLocal<OrderSubmitVo> submitVoThreadLocal = new ThreadLocal<>();
     @Autowired
     private MemberFeignService memberFeignService;
     @Autowired
@@ -48,6 +55,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     private ThreadPoolExecutor executor;
     @Autowired
     private WareFeignService wareFeignService;
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+    @Autowired
+    private ProductFeignService productFeignService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -95,11 +106,181 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             }
         }, executor);
 
-
         orderConfirmVo.setIntegration(memberVO.getIntegration());
+
+        String token = UUID.randomUUID().toString();
+        redisTemplate.opsForValue().set(OrderConstant.USER_ORDER_TOKEN_PREFIX + memberVO.getId(), token, 30, TimeUnit.MINUTES);
+
+        orderConfirmVo.setOrderToken(token);
         CompletableFuture.allOf(addressFuture, orderItemFuture).get();
 
         return orderConfirmVo;
+    }
+
+    @Override
+    public SubmitOrderResponseVo submitOrder(OrderSubmitVo submitVo) {
+        submitVoThreadLocal.set(submitVo);
+        SubmitOrderResponseVo responseVo = new SubmitOrderResponseVo();
+        MemberVO memberVO = loginUserInterceptor.threadLocal.get();
+        //1、验证令牌 (保证查询，验证，删除令牌为原子操作)
+
+        String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+        //原子 查询，验证，删除令牌
+        Long result = redisTemplate.execute(new DefaultRedisScript<>(script), Collections.singletonList(OrderConstant.USER_ORDER_TOKEN_PREFIX + memberVO.getId()), submitVo.getOrderToken());
+//        String token = redisTemplate.opsForValue().get(OrderConstant.USER_ORDER_TOKEN_PREFIX + memberVO.getId());
+//        if (StringUtils.isNotEmpty(token) && token.equals(submitVo.getOrderToken())) {
+//        } else {
+//            responseVo.setCode(1);
+//        }
+        if (result == 0L) {
+            responseVo.setCode(1);
+            return responseVo;
+        }
+        //2、创建订单
+        OrderCreateTo order = createOrder(memberVO.getId());
+        //3.验证价格
+        BigDecimal payAmount = order.getOrder().getPayAmount();
+        BigDecimal payPrice = submitVo.getPayPrice();
+        //价格误差
+        if (Math.abs(payAmount.subtract(payPrice).doubleValue()) >= 0.01) {
+            responseVo.setCode(2);
+            return responseVo;
+        }
+        //4.保存订单数据
+        saveOrderToDB(order);
+
+
+
+        return responseVo;
+    }
+
+    private void saveOrderToDB(OrderCreateTo order) {
+
+
+    }
+
+    public OrderCreateTo createOrder(Long memberId) {
+        OrderCreateTo createTo = new OrderCreateTo();
+        //1.生成订单号
+        OrderEntity orderEntity = buildOrderEntity();
+        createTo.setOrder(orderEntity);
+        //3.设置订单项
+        List<OrderItemEntity> orderItemEntities = buildOrderItemEntities(memberId, orderEntity.getOrderSn());
+        createTo.setOrderItems(orderItemEntities);
+        //4.验证价格
+        buildPrice(orderEntity, orderItemEntities);
+        createTo.setFare(orderEntity.getFreightAmount());
+        return createTo;
+    }
+
+    private void buildPrice(OrderEntity orderEntity, List<OrderItemEntity> orderItemEntities) {
+        BigDecimal total = new BigDecimal("0");
+        BigDecimal coupon = new BigDecimal("0");
+        BigDecimal integration = new BigDecimal("0");
+        BigDecimal promotion = new BigDecimal("0");
+        int growth = 0;
+        int inte = 0;
+        for (OrderItemEntity orderItemEntity : orderItemEntities) {
+            coupon = coupon.add(orderItemEntity.getCouponAmount());
+            integration = integration.add(orderItemEntity.getIntegrationAmount());
+            promotion = promotion.add(orderItemEntity.getPromotionAmount());
+            total = total.add(orderItemEntity.getRealAmount());
+
+            growth = growth + orderItemEntity.getGiftGrowth();
+            inte = inte + orderItemEntity.getGiftIntegration();
+
+        }
+        orderEntity.setTotalAmount(total);
+        orderEntity.setPayAmount(total.add(orderEntity.getFreightAmount()));
+        orderEntity.setCouponAmount(coupon);
+        orderEntity.setIntegrationAmount(integration);
+        orderEntity.setPromotionAmount(promotion);
+
+        orderEntity.setGrowth(growth);
+        orderEntity.setIntegration(inte);
+    }
+
+    private OrderEntity buildOrderEntity() {
+        OrderEntity orderEntity = new OrderEntity();
+        //订单号
+        String orderSn = IdWorker.getTimeId();
+        orderEntity.setOrderSn(orderSn);
+        OrderSubmitVo orderSubmitVo = submitVoThreadLocal.get();
+        R r = wareFeignService.getFee(orderSubmitVo.getAddrId());
+        //2.设置收货人信息
+        if (r.getCode() == 0) {
+            FareVo fareVo = r.getData(new TypeReference<FareVo>() {
+            });
+            orderEntity.setFreightAmount(fareVo.getFare());
+            orderEntity.setReceiverCity(fareVo.getAddress().getCity());
+            orderEntity.setReceiverDetailAddress(fareVo.getAddress().getDetailAddress());
+            orderEntity.setReceiverName(fareVo.getAddress().getName());
+            orderEntity.setReceiverProvince(fareVo.getAddress().getProvince());
+            orderEntity.setReceiverRegion(fareVo.getAddress().getRegion());
+            orderEntity.setReceiverPhone(fareVo.getAddress().getPhone());
+            orderEntity.setReceiverPostCode(fareVo.getAddress().getPostCode());
+        }
+        //设置状态
+        orderEntity.setStatus(OrderStatusEnum.CREATE_NEW.getCode());
+        orderEntity.setAutoConfirmDay(7);
+
+        orderEntity.setDeleteStatus(0);
+        orderEntity.setCreateTime(new Date());
+
+        return orderEntity;
+    }
+
+    private List<OrderItemEntity> buildOrderItemEntities(Long memberId, String orderSn) {
+        R r1 = cartFeignService.currentUserCartItems(memberId);
+        if (r1.getCode() == 0) {
+            List<OrderItemVo> cartItems = r1.getData("cartItems", new TypeReference<List<OrderItemVo>>() {
+            });
+            if (cartItems != null && cartItems.size() > 0) {
+                return cartItems.stream().map(e -> {
+                    OrderItemEntity orderItemEntity = buildOrderEntity(e);
+                    orderItemEntity.setOrderSn(orderSn);
+                    return orderItemEntity;
+                }).collect(Collectors.toList());
+            }
+        }
+        return new ArrayList<>();
+    }
+
+    private OrderItemEntity buildOrderEntity(OrderItemVo orderVo) {
+        OrderItemEntity orderItemEntity = new OrderItemEntity();
+        //1.订单信息
+        //2.spu信息
+        R r = productFeignService.querySpuBySkuId(orderVo.getSkuId());
+        SpuInfoVo spuInfoVo = r.getData(new TypeReference<SpuInfoVo>() {
+        });
+        orderItemEntity.setSpuId(spuInfoVo.getId());
+        orderItemEntity.setSpuName(spuInfoVo.getSpuName());
+        orderItemEntity.setSpuBrand(spuInfoVo.getBrandId().toString());
+        orderItemEntity.setCategoryId(spuInfoVo.getCatalogId());
+
+        //3.sku信息
+        orderItemEntity.setSkuId(orderVo.getSkuId());
+        orderItemEntity.setSkuName(orderVo.getTitle());
+        orderItemEntity.setSkuPic(orderVo.getImage());
+        orderItemEntity.setSkuPrice(orderVo.getPrice());
+        orderItemEntity.setSkuQuantity(orderVo.getCount());
+        orderItemEntity.setSkuAttrsVals(StringUtils.join(orderVo.getSkuAttr(), ";"));
+        //4.优惠信息
+        //5.积分信息
+        orderItemEntity.setGiftIntegration(orderVo.getTotalPrice().intValue());
+        orderItemEntity.setGiftGrowth(orderVo.getTotalPrice().intValue());
+        //6.价格信息
+        orderItemEntity.setPromotionAmount(new BigDecimal("0"));
+        orderItemEntity.setCouponAmount(new BigDecimal("0"));
+        orderItemEntity.setIntegrationAmount(new BigDecimal("0"));
+        //当前订单项的实际金额
+        BigDecimal origin = orderItemEntity.getSkuPrice().multiply(new BigDecimal(orderItemEntity.getSkuQuantity().toString()));
+        BigDecimal subtract = origin
+                .subtract(orderItemEntity.getPromotionAmount())
+                .subtract(orderItemEntity.getCouponAmount())
+                .subtract(orderItemEntity.getIntegrationAmount());
+        orderItemEntity.setRealAmount(subtract);
+        return orderItemEntity;
     }
 
 }

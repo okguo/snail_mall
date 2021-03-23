@@ -3,13 +3,10 @@ package com.okguo.snailmall.product.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.okguo.snailmall.product.entity.SkuInfoEntity;
 import com.okguo.snailmall.product.vo.SpuSaveVo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.okguo.snailmall.product.entity.SpuInfoEntity;
 import com.okguo.snailmall.product.service.SpuInfoService;
@@ -30,6 +27,15 @@ import com.okguo.common.utils.R;
 public class SpuInfoController {
     @Autowired
     private SpuInfoService spuInfoService;
+
+    /**
+     * 根据skuId 查询spu 信息
+     */
+    @GetMapping("/skuId/{skuId}")
+    public R querySpuBySkuId(@PathVariable("skuId") Long skuId){
+        SpuInfoEntity spuInfoEntity = spuInfoService.querySpuBySkuId(skuId);
+        return R.ok(spuInfoEntity);
+    }
 
     /**
      * 列表

@@ -736,9 +736,16 @@
     <div class="yfze">
         <p class="yfze_a"><span class="z">应付总额：</span><span class="hq">￥<b
                 id="payElem">[[${orderConfirmData.payPrice}]]</b></span></p>
-        <p class="yfze_b">寄送至：<span id="newAddr"></span> 收货人：<span id="reciverElem"></span> <span id="reciverPhoneElem"></span></p>
+        <p class="yfze_b">寄送至：<span id="newAddr"></span> 收货人：<span id="reciverElem"></span> <span
+                id="reciverPhoneElem"></span></p>
     </div>
-    <button class="tijiao">提交订单</button>
+    <form method="post" action="http://order.snailmall.com/submitOrder">
+        <input id="addrIdInput" type="hidden" name="addrId">
+<!--        <input type="hidden" name="">-->
+        <input id="payPriceInput" type="hidden" name="payPrice">
+        <input type="hidden" name="orderToken" th:value="${orderConfirmData.orderToken}">
+        <button class="tijiao" type="submit">提交订单</button>
+    </form>
 </div>
 </div>
 
@@ -990,10 +997,12 @@
     });
 
     function getFee(addrId) {
+        $("#addrIdInput").val(addrId);
         $.get("http://snailmall.com/api/ware/wareinfo/fee?addrId=" + addrId, function (data) {
             $("#feeElem").text(data.data.fare);
             var total = [[${orderConfirmData.total}]];
             $("#payElem").text(total * 1 + data.data.fare * 1);
+            $("#payPriceInput").val(total * 1 + data.data.fare * 1)
             $("#newAddr").text(data.data.address.province + data.data.address.city + data.data.address.region + data.data.address.detailAddress);
             $("#reciverElem").text(data.data.address.name);
             $("#reciverPhoneElem").text(data.data.address.phone);
