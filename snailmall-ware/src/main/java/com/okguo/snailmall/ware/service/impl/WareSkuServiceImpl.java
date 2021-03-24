@@ -1,10 +1,13 @@
 package com.okguo.snailmall.ware.service.impl;
 
+import com.okguo.common.exception.RRException;
 import com.okguo.common.to.SkuHasStockVo;
 import com.okguo.common.utils.R;
 import com.okguo.snailmall.ware.feign.ProductFeignService;
 import com.okguo.snailmall.ware.vo.LockStockResult;
+import com.okguo.snailmall.ware.vo.OrderItemVo;
 import com.okguo.snailmall.ware.vo.WareSkuLockVo;
+import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +25,7 @@ import com.okguo.common.utils.Query;
 import com.okguo.snailmall.ware.dao.WareSkuDao;
 import com.okguo.snailmall.ware.entity.WareSkuEntity;
 import com.okguo.snailmall.ware.service.WareSkuService;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service("wareSkuService")
@@ -96,11 +100,46 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
         }).collect(Collectors.toList());
     }
 
+    @Transactional(rollbackFor = RRException.class)
     @Override
-    public List<LockStockResult> orderLock(WareSkuLockVo wareSkuLockVo) {
+    public Boolean orderLock(WareSkuLockVo wareSkuLockVo) {
+        List<OrderItemVo> orderItemVos = wareSkuLockVo.getLocks();
+        List<SkuWareHasStock> skuWareHasStocks = orderItemVos.stream().map(item -> {
+            SkuWareHasStock hasStock = new SkuWareHasStock();
+            hasStock.setSkuId(item.getSkuId());
+            hasStock.setCount(item.getCount());
+            List<Long> wareIds = wareSkuDao.listWareIdHasSkuStock(item.getSkuId());
+            hasStock.setWareId(wareIds);
+            return hasStock;
+        }).collect(Collectors.toList());
 
+        //锁定库存
+        for (SkuWareHasStock skuWareHasStock : skuWareHasStocks) {
+            boolean currentSkuLocked = false;
+            Long skuId = skuWareHasStock.getSkuId();
+            Integer count = skuWareHasStock.getCount();
+            List<Long> wareIds = skuWareHasStock.getWareId();
+            if (wareIds == null || wareIds.size() < 1) {
+                throw new RRException("商品id：" + skuId + ";库存不足");
+            }
+            for (Long wareId : wareIds) {
+                Long result = wareSkuDao.lockSkuStock(skuId, wareId, count);
+                if (result == 1) {
+                    currentSkuLocked = true;
+                }
+            }
+            if (!currentSkuLocked) {
+                throw new RRException("商品id：" + skuId + ";库存不足");
+            }
+        }
+        return true;
+    }
 
-        return null;
+    @Data
+    static class SkuWareHasStock {
+        private Long skuId;
+        private Integer count;
+        private List<Long> wareId;
     }
 
 }

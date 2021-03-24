@@ -2,6 +2,8 @@ package com.okguo.snailmall.order.service.impl;
 
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.okguo.common.exception.BizCodeEnum;
+import com.okguo.common.exception.RRException;
 import com.okguo.common.utils.R;
 import com.okguo.common.vo.MemberVO;
 import com.okguo.snailmall.order.constant.OrderConstant;
@@ -126,6 +128,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     public SubmitOrderResponseVo submitOrder(OrderSubmitVo submitVo) {
         submitVoThreadLocal.set(submitVo);
         SubmitOrderResponseVo responseVo = new SubmitOrderResponseVo();
+        responseVo.setCode(0);
         MemberVO memberVO = loginUserInterceptor.threadLocal.get();
         //1、验证令牌 (保证查询，验证，删除令牌为原子操作)
 
@@ -166,8 +169,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         }).collect(Collectors.toList());
         lockVo.setLocks(collect);
         R r = wareFeignService.orderLock(lockVo);
-        //TODO
-
+        if (r.getCode() != 0) {
+            responseVo.setCode(3);
+            throw new RRException(BizCodeEnum.NO_STOCK_EXCEPTION.getMsg(), BizCodeEnum.NO_STOCK_EXCEPTION.getCode());
+        }
+        responseVo.setOrder(order.getOrder());
         return responseVo;
     }
 

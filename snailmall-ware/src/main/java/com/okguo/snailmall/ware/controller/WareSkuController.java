@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.okguo.common.exception.BizCodeEnum;
+import com.okguo.common.exception.RRException;
 import com.okguo.common.to.SkuHasStockVo;
 import com.okguo.snailmall.ware.vo.LockStockResult;
 import com.okguo.snailmall.ware.vo.WareSkuLockVo;
@@ -14,7 +16,6 @@ import com.okguo.snailmall.ware.entity.WareSkuEntity;
 import com.okguo.snailmall.ware.service.WareSkuService;
 import com.okguo.common.utils.PageUtils;
 import com.okguo.common.utils.R;
-
 
 
 /**
@@ -31,12 +32,17 @@ public class WareSkuController {
     private WareSkuService wareSkuService;
 
     /**
-     * 列表
+     * 锁库存
      */
     @PostMapping("/orderLock")
-    public R orderLock(@RequestBody WareSkuLockVo wareSkuLockVo){
-        List<LockStockResult> results = wareSkuService.orderLock(wareSkuLockVo);
-        return R.ok(results);
+    public R orderLock(@RequestBody WareSkuLockVo wareSkuLockVo) {
+        try {
+            Boolean results = wareSkuService.orderLock(wareSkuLockVo);
+            return R.ok();
+        } catch (RRException e) {
+            return R.error(BizCodeEnum.NO_STOCK_EXCEPTION.getCode(),BizCodeEnum.NO_STOCK_EXCEPTION.getMsg());
+        }
+
     }
 
     /**
@@ -44,7 +50,7 @@ public class WareSkuController {
      */
     @PostMapping("/hasStock")
 //    @RequiresPermissions("ware:waresku:list")
-    public R hasStock(@RequestBody List<Long> skuIds){
+    public R hasStock(@RequestBody List<Long> skuIds) {
         List<SkuHasStockVo> stockVos = wareSkuService.queryHasStock(skuIds);
         return R.ok(stockVos);
     }
@@ -54,7 +60,7 @@ public class WareSkuController {
      */
     @RequestMapping("/list")
 //    @RequiresPermissions("ware:waresku:list")
-    public R list(@RequestParam Map<String, Object> params){
+    public R list(@RequestParam Map<String, Object> params) {
         PageUtils page = wareSkuService.queryPage(params);
 
         return R.ok().put("page", page);
@@ -66,8 +72,8 @@ public class WareSkuController {
      */
     @RequestMapping("/info/{id}")
 //    @RequiresPermissions("ware:waresku:info")
-    public R info(@PathVariable("id") Long id){
-		WareSkuEntity wareSku = wareSkuService.getById(id);
+    public R info(@PathVariable("id") Long id) {
+        WareSkuEntity wareSku = wareSkuService.getById(id);
 
         return R.ok().put("wareSku", wareSku);
     }
@@ -77,8 +83,8 @@ public class WareSkuController {
      */
     @RequestMapping("/save")
 //    @RequiresPermissions("ware:waresku:save")
-    public R save(@RequestBody WareSkuEntity wareSku){
-		wareSkuService.save(wareSku);
+    public R save(@RequestBody WareSkuEntity wareSku) {
+        wareSkuService.save(wareSku);
 
         return R.ok();
     }
@@ -88,8 +94,8 @@ public class WareSkuController {
      */
     @RequestMapping("/update")
 //    @RequiresPermissions("ware:waresku:update")
-    public R update(@RequestBody WareSkuEntity wareSku){
-		wareSkuService.updateById(wareSku);
+    public R update(@RequestBody WareSkuEntity wareSku) {
+        wareSkuService.updateById(wareSku);
 
         return R.ok();
     }
@@ -99,8 +105,8 @@ public class WareSkuController {
      */
     @RequestMapping("/delete")
 //    @RequiresPermissions("ware:waresku:delete")
-    public R delete(@RequestBody Long[] ids){
-		wareSkuService.removeByIds(Arrays.asList(ids));
+    public R delete(@RequestBody Long[] ids) {
+        wareSkuService.removeByIds(Arrays.asList(ids));
 
         return R.ok();
     }

@@ -590,7 +590,7 @@
 <!--</div>-->
 <!--</div>-->
 <!--主体部分-->
-<p class="p1">填写并核对订单信息</p>
+<p class="p1">填写并核对订单信息<span style="color: red" th:if="${session.msg!=null}" th:text="${session.msg}"></span></p>
 <div class="section">
     <!--收货人信息-->
     <div class="top-2">
@@ -741,7 +741,7 @@
     </div>
     <form method="post" action="http://order.snailmall.com/submitOrder">
         <input id="addrIdInput" type="hidden" name="addrId">
-<!--        <input type="hidden" name="">-->
+        <!--        <input type="hidden" name="">-->
         <input id="payPriceInput" type="hidden" name="payPrice">
         <input type="hidden" name="orderToken" th:value="${orderConfirmData.orderToken}">
         <button class="tijiao" type="submit">提交订单</button>

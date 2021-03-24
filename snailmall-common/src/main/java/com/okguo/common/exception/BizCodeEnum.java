@@ -15,12 +15,14 @@ package com.okguo.common.exception;
  * 15: 用户
  * 001：用户手机号重复
  * 002：用户名称重复
+ * 16: 库存
  */
 public enum BizCodeEnum {
     PRODUCT_UP_EXCEPTION(11000, "商品上架异常"),
     MOBILE_EXIST_EXCEPTION(15001, "用户手机号已存在"),
     USERNAME_EXIST_EXCEPTION(15002, "用户名已存在"),
     USER_ACCOUNT_ERROR_EXCEPTION(15003, "账号或密码错误"),
+    NO_STOCK_EXCEPTION(16001, "商品库存不足"),
     SMS_CODE_EXCEPTION(10002, "验证码获取频率过高，请稍后再试");
 
     private int code;
