@@ -1,6 +1,7 @@
 package com.okguo.snailmall.order.feign;
 
 import com.okguo.common.utils.R;
+import com.okguo.snailmall.order.vo.WareSkuLockVo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,5 +23,8 @@ public interface WareFeignService {
 
     @GetMapping("/ware/wareinfo/fee")
     R getFee(@RequestParam("addrId") Long addrId);
+
+    @PostMapping("/ware/waresku/orderLock")
+    R orderLock(@RequestBody WareSkuLockVo wareSkuLockVo);
 
 }

@@ -3,6 +3,8 @@ package com.okguo.snailmall.ware.service.impl;
 import com.okguo.common.to.SkuHasStockVo;
 import com.okguo.common.utils.R;
 import com.okguo.snailmall.ware.feign.ProductFeignService;
+import com.okguo.snailmall.ware.vo.LockStockResult;
+import com.okguo.snailmall.ware.vo.WareSkuLockVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -92,6 +94,13 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
             vo.setHasStock(count != null && count > 0);
             return vo;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<LockStockResult> orderLock(WareSkuLockVo wareSkuLockVo) {
+
+
+        return null;
     }
 
 }

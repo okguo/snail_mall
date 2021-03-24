@@ -12,6 +12,7 @@ import com.okguo.snailmall.order.feign.MemberFeignService;
 import com.okguo.snailmall.order.feign.ProductFeignService;
 import com.okguo.snailmall.order.feign.WareFeignService;
 import com.okguo.snailmall.order.interceptor.LoginUserInterceptor;
+import com.okguo.snailmall.order.service.OrderItemService;
 import com.okguo.snailmall.order.to.OrderCreateTo;
 import com.okguo.snailmall.order.vo.*;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +38,7 @@ import com.okguo.common.utils.Query;
 import com.okguo.snailmall.order.dao.OrderDao;
 import com.okguo.snailmall.order.entity.OrderEntity;
 import com.okguo.snailmall.order.service.OrderService;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
@@ -59,6 +61,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     private StringRedisTemplate redisTemplate;
     @Autowired
     private ProductFeignService productFeignService;
+    @Autowired
+    private OrderItemService orderItemService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -117,6 +121,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return orderConfirmVo;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public SubmitOrderResponseVo submitOrder(OrderSubmitVo submitVo) {
         submitVoThreadLocal.set(submitVo);
@@ -137,7 +142,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             return responseVo;
         }
         //2、创建订单
-        OrderCreateTo order = createOrder(memberVO.getId());
+        OrderCreateTo order = createOrder(memberVO);
         //3.验证价格
         BigDecimal payAmount = order.getOrder().getPayAmount();
         BigDecimal payPrice = submitVo.getPayPrice();
@@ -146,26 +151,44 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             responseVo.setCode(2);
             return responseVo;
         }
-        //4.保存订单数据 TODO
+        //4.保存订单数据
         saveOrderToDB(order);
+        //5.锁定库存
+        WareSkuLockVo lockVo = new WareSkuLockVo();
+        lockVo.setOrderSn(order.getOrder().getOrderSn());
 
-
+        List<OrderItemVo> collect = order.getOrderItems().stream().map(e -> {
+            OrderItemVo vo = new OrderItemVo();
+            vo.setSkuId(e.getSkuId());
+            vo.setTitle(e.getSkuName());
+            vo.setCount(e.getSkuQuantity());
+            return vo;
+        }).collect(Collectors.toList());
+        lockVo.setLocks(collect);
+        R r = wareFeignService.orderLock(lockVo);
+        //TODO
 
         return responseVo;
     }
 
-    private void saveOrderToDB(OrderCreateTo order) {
+    void saveOrderToDB(OrderCreateTo order) {
+        OrderEntity orderEntity = order.getOrder();
+        orderEntity.setModifyTime(new Date());
+        this.save(orderEntity);
 
+        orderItemService.saveBatch(order.getOrderItems());
 
     }
 
-    public OrderCreateTo createOrder(Long memberId) {
+    public OrderCreateTo createOrder(MemberVO memberVO) {
         OrderCreateTo createTo = new OrderCreateTo();
         //1.生成订单号
         OrderEntity orderEntity = buildOrderEntity();
+        orderEntity.setMemberId(memberVO.getId());
+        orderEntity.setMemberUsername(memberVO.getUsername());
         createTo.setOrder(orderEntity);
         //3.设置订单项
-        List<OrderItemEntity> orderItemEntities = buildOrderItemEntities(memberId, orderEntity.getOrderSn());
+        List<OrderItemEntity> orderItemEntities = buildOrderItemEntities(memberVO.getId(), orderEntity.getOrderSn());
         createTo.setOrderItems(orderItemEntities);
         //4.验证价格
         buildPrice(orderEntity, orderItemEntities);

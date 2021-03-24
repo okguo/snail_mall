@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.okguo.common.to.SkuHasStockVo;
+import com.okguo.snailmall.ware.vo.LockStockResult;
+import com.okguo.snailmall.ware.vo.WareSkuLockVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +29,15 @@ import com.okguo.common.utils.R;
 public class WareSkuController {
     @Autowired
     private WareSkuService wareSkuService;
+
+    /**
+     * 列表
+     */
+    @PostMapping("/orderLock")
+    public R orderLock(@RequestBody WareSkuLockVo wareSkuLockVo){
+        List<LockStockResult> results = wareSkuService.orderLock(wareSkuLockVo);
+        return R.ok(results);
+    }
 
     /**
      * 列表
