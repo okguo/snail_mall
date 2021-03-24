@@ -57,7 +57,19 @@ RabbitMQ 使用
     3.配置项
     4.开启RabbitMQ功能
 
+本地事务失效问题
+    同一个对象内事务方法互调默认失效，原因：绕过了代理对象。事务是使用代理对象来控制的
+    解决：
+        使用代理对象来调用事务方法
+        1)、引入aop-starter  spring-boot-starter-aop
+        2)、开启AspectJ动态代理功能 @EnableAspectJAutoProxy(exposeProxy = true)。以后所有的动态代理都是aspectJ创建(即使没有接口也可以使用动态代理)的，而不是jdk的
+        3)、本地事务使用代理对象 互相调用
 
+分布式事务：https://www.bilibili.com/video/BV1np4y1C7Yf?p=287&spm_id_from=pageDriver   --286
+
+Seata处理分布式事务
+    1、每一个微服务需添加 undo_log 表
+    2、安装事务协调器 seata-server
 
 
 
