@@ -69,7 +69,8 @@ RabbitMQ 使用
 
 Seata处理分布式事务
     1、每一个微服务需添加 undo_log 表
-    2、安装事务协调器 seata-server
+    2、安装事务协调器 seata-server,并进行seata服务器配置（注册中心、事务日志）
+    3、配置seata代理数据源  见:SeataDataSourceProxyConfig (DataSourceProxy)
 
 
 

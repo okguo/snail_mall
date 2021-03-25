@@ -18,6 +18,7 @@ import com.okguo.snailmall.order.interceptor.LoginUserInterceptor;
 import com.okguo.snailmall.order.service.OrderItemService;
 import com.okguo.snailmall.order.to.OrderCreateTo;
 import com.okguo.snailmall.order.vo.*;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -124,6 +125,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return orderConfirmVo;
     }
 
+    @GlobalTransactional
     @Transactional(rollbackFor = Exception.class)
     @Override
     public SubmitOrderResponseVo submitOrder(OrderSubmitVo submitVo) {
@@ -135,7 +137,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
         String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
         //原子 查询，验证，删除令牌
-        Long result = redisTemplate.execute(new DefaultRedisScript<Long>(script,Long.class), Collections.singletonList(OrderConstant.USER_ORDER_TOKEN_PREFIX + memberVO.getId().toString()), submitVo.getOrderToken());
+        Long result = redisTemplate.execute(new DefaultRedisScript<Long>(script, Long.class), Collections.singletonList(OrderConstant.USER_ORDER_TOKEN_PREFIX + memberVO.getId().toString()), submitVo.getOrderToken());
 //        String token = redisTemplate.opsForValue().get(OrderConstant.USER_ORDER_TOKEN_PREFIX + memberVO.getId());
 //        if (StringUtils.isNotEmpty(token) && token.equals(submitVo.getOrderToken())) {
 //        } else {
