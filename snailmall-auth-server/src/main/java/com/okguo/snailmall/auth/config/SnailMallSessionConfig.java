@@ -27,7 +27,7 @@ public class SnailMallSessionConfig {
 
     @Bean
     public RedisSerializer<Object> springSessionDefaultRedisSerializer() {
-        return new GenericFastJsonRedisSerializer();
+        return new GenericJackson2JsonRedisSerializer();
     }
 
 

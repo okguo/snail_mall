@@ -1,6 +1,8 @@
 package com.okguo.snailmall.order.web;
 
 import com.alibaba.fastjson.JSON;
+import com.okguo.common.exception.BizCodeEnum;
+import com.okguo.common.exception.RRException;
 import com.okguo.snailmall.order.service.OrderService;
 import com.okguo.snailmall.order.vo.OrderConfirmVo;
 import com.okguo.snailmall.order.vo.OrderSubmitVo;
@@ -57,23 +59,35 @@ public class OrderPageController {
 
     @PostMapping("submitOrder")
     public String submitOrder(OrderSubmitVo submitVo, Model model, RedirectAttributes redirectAttributes) {
-        log.info("提交订单参数：" + JSON.toJSONString(submitVo));
-        SubmitOrderResponseVo responseVo = orderService.submitOrder(submitVo);
-        model.addAttribute("responseVo", responseVo);
+        try {
+            log.info("提交订单参数：" + JSON.toJSONString(submitVo));
+            SubmitOrderResponseVo responseVo = orderService.submitOrder(submitVo);
+            model.addAttribute("responseVo", responseVo);
 
-        if (responseVo.getCode() == 0) {
-            model.addAttribute("submitOrderResp", responseVo);
-            return "pay";
-        }
+            if (responseVo.getCode() == 0) {
+                model.addAttribute("submitOrderResp", responseVo);
+                return "pay";
+            }
 
-        String msg = "下单失败：";
-        switch (responseVo.getCode()) {
-            case 1: msg+="订单信息过期，请刷新后再次提交";break;
-            case 2: msg+="订单价格发生变化，请确认后再次提交";break;
-            case 3: msg+="库存锁定失败，商品库存不足";break;
+            String msg = "下单失败：";
+            switch (responseVo.getCode()) {
+                case 1:
+                    msg += "订单信息过期，请刷新后再次提交";
+                    break;
+                case 2:
+                    msg += "订单价格发生变化，请确认后再次提交";
+                    break;
+                case 3:
+                    msg += "库存锁定失败，商品库存不足";
+                    break;
+            }
+            redirectAttributes.addFlashAttribute("msg", msg);
+            return "redirect:http://order.snailmall.com/toTrade";
+        } catch (Exception e) {
+            if (e instanceof RRException) {
+                redirectAttributes.addFlashAttribute("msg", ((RRException) e).getMsg());
+            }
+            return "redirect:http://order.snailmall.com/toTrade";
         }
-        redirectAttributes.addFlashAttribute("msg", msg);
-        return "redirect:http://order.snailmall.com/toTrade";
     }
-
 }

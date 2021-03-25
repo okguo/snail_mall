@@ -1,5 +1,6 @@
 package com.okguo.snailmall.order.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.okguo.common.exception.BizCodeEnum;
@@ -114,8 +115,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
         orderConfirmVo.setIntegration(memberVO.getIntegration());
 
-        String token = UUID.randomUUID().toString();
-        redisTemplate.opsForValue().set(OrderConstant.USER_ORDER_TOKEN_PREFIX + memberVO.getId(), token, 30, TimeUnit.MINUTES);
+        String token = UUID.randomUUID().toString().replace("-", "");
+        redisTemplate.opsForValue().set(OrderConstant.USER_ORDER_TOKEN_PREFIX + memberVO.getId().toString(), token, 30, TimeUnit.MINUTES);
 
         orderConfirmVo.setOrderToken(token);
         CompletableFuture.allOf(addressFuture, orderItemFuture).get();
@@ -134,7 +135,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
         String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
         //原子 查询，验证，删除令牌
-        Long result = redisTemplate.execute(new DefaultRedisScript<>(script), Collections.singletonList(OrderConstant.USER_ORDER_TOKEN_PREFIX + memberVO.getId()), submitVo.getOrderToken());
+        Long result = redisTemplate.execute(new DefaultRedisScript<Long>(script,Long.class), Collections.singletonList(OrderConstant.USER_ORDER_TOKEN_PREFIX + memberVO.getId().toString()), submitVo.getOrderToken());
 //        String token = redisTemplate.opsForValue().get(OrderConstant.USER_ORDER_TOKEN_PREFIX + memberVO.getId());
 //        if (StringUtils.isNotEmpty(token) && token.equals(submitVo.getOrderToken())) {
 //        } else {
