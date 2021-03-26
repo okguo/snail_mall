@@ -13,6 +13,7 @@ import com.okguo.snailmall.product.feign.ElasticSearchFeignService;
 import com.okguo.snailmall.product.feign.WareFeignService;
 import com.okguo.snailmall.product.service.*;
 import com.okguo.snailmall.product.vo.*;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -69,6 +70,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         return new PageUtils(page);
     }
 
+    @GlobalTransactional
     @Transactional
     @Override
     public void saveSpuInfo(SpuSaveVo vo) {

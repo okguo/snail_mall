@@ -19,6 +19,7 @@ import com.okguo.snailmall.order.service.OrderItemService;
 import com.okguo.snailmall.order.to.OrderCreateTo;
 import com.okguo.snailmall.order.vo.*;
 import io.seata.spring.annotation.GlobalTransactional;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -46,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
-
+@Slf4j
 @Service("orderService")
 public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> implements OrderService {
 
@@ -162,7 +163,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         //5.锁定库存
         WareSkuLockVo lockVo = new WareSkuLockVo();
         lockVo.setOrderSn(order.getOrder().getOrderSn());
-
         List<OrderItemVo> collect = order.getOrderItems().stream().map(e -> {
             OrderItemVo vo = new OrderItemVo();
             vo.setSkuId(e.getSkuId());
@@ -176,6 +176,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             responseVo.setCode(3);
             throw new RRException(BizCodeEnum.NO_STOCK_EXCEPTION.getMsg(), BizCodeEnum.NO_STOCK_EXCEPTION.getCode());
         }
+        int i = 10 / 0;
+        log.info("submitOrder->------");
         responseVo.setOrder(order.getOrder());
         return responseVo;
     }
