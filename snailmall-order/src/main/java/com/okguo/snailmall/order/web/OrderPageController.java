@@ -59,6 +59,8 @@ public class OrderPageController {
 
     @PostMapping("submitOrder")
     public String submitOrder(OrderSubmitVo submitVo, Model model, RedirectAttributes redirectAttributes) {
+        try {
+
             log.info("提交订单参数：" + JSON.toJSONString(submitVo));
             SubmitOrderResponseVo responseVo = orderService.submitOrder(submitVo);
             model.addAttribute("responseVo", responseVo);
@@ -70,17 +72,23 @@ public class OrderPageController {
 
             String msg = "下单失败：";
             switch (responseVo.getCode()) {
-                case 1:msg += "订单信息过期，请刷新后再次提交";break;
-                case 2:msg += "订单价格发生变化，请确认后再次提交";break;
-                case 3:msg += "库存锁定失败，商品库存不足";break;
+                case 1:
+                    msg += "订单信息过期，请刷新后再次提交";
+                    break;
+                case 2:
+                    msg += "订单价格发生变化，请确认后再次提交";
+                    break;
+                case 3:
+                    msg += "库存锁定失败，商品库存不足";
+                    break;
             }
             redirectAttributes.addFlashAttribute("msg", msg);
             return "redirect:http://order.snailmall.com/toTrade";
-//        } catch (Exception e) {
-//            if (e instanceof RRException) {
-//                redirectAttributes.addFlashAttribute("msg", ((RRException) e).getMsg());
-//            }
-//            return "redirect:http://order.snailmall.com/toTrade";
-//        }
+        } catch (Exception e) {
+            if (e instanceof RRException) {
+                redirectAttributes.addFlashAttribute("msg", ((RRException) e).getMsg());
+            }
+            return "redirect:http://order.snailmall.com/toTrade";
+        }
     }
 }
