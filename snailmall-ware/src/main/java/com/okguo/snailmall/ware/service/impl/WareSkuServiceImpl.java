@@ -4,11 +4,14 @@ import com.okguo.common.exception.RRException;
 import com.okguo.common.to.SkuHasStockVo;
 import com.okguo.common.utils.R;
 import com.okguo.snailmall.ware.feign.ProductFeignService;
+import com.okguo.snailmall.ware.service.WareOrderTaskDetailService;
+import com.okguo.snailmall.ware.service.WareOrderTaskService;
 import com.okguo.snailmall.ware.vo.LockStockResult;
 import com.okguo.snailmall.ware.vo.OrderItemVo;
 import com.okguo.snailmall.ware.vo.WareSkuLockVo;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +38,12 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
     private WareSkuDao wareSkuDao;
     @Autowired
     private ProductFeignService productFeignService;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private WareOrderTaskService wareOrderTaskService;
+    @Autowired
+    private WareOrderTaskDetailService wareOrderTaskDetailService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -100,9 +109,17 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 解锁库存的场景
+     *  1.下单成功，未支付，超时自动解锁
+     *  2.下单成功，订单异常，保证一致性，解锁库存
+     */
+
     @Transactional(rollbackFor = RRException.class)
     @Override
     public Boolean orderLock(WareSkuLockVo wareSkuLockVo) {
+
+
         List<OrderItemVo> orderItemVos = wareSkuLockVo.getLocks();
         List<SkuWareHasStock> skuWareHasStocks = orderItemVos.stream().map(item -> {
             SkuWareHasStock hasStock = new SkuWareHasStock();
@@ -126,6 +143,11 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
                 Long result = wareSkuDao.lockSkuStock(skuId, wareId, count);
                 if (result == 1) {
                     currentSkuLocked = true;
+
+                    //发送消息
+                    //TODO
+//                    rabbitTemplate.convertAndSend()
+                    break;
                 }
             }
             if (!currentSkuLocked) {
