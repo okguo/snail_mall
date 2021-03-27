@@ -1,0 +1,30 @@
+package com.okguo.snailmall.ware.common.config;
+
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.PostConstruct;
+
+/**
+ * @Description:
+ * @Author: Guoyongfu
+ * @Date: 2021/03/27 16:26
+ */
+@Configuration
+public class RabbitConfig {
+
+    @Autowired
+    RabbitTemplate rabbitTemplate;
+
+    @Bean
+    public MessageConverter getMessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+
+}

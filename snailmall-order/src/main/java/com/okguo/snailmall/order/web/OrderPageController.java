@@ -3,18 +3,23 @@ package com.okguo.snailmall.order.web;
 import com.alibaba.fastjson.JSON;
 import com.okguo.common.exception.BizCodeEnum;
 import com.okguo.common.exception.RRException;
+import com.okguo.snailmall.order.entity.OrderEntity;
 import com.okguo.snailmall.order.service.OrderService;
 import com.okguo.snailmall.order.vo.OrderConfirmVo;
 import com.okguo.snailmall.order.vo.OrderSubmitVo;
 import com.okguo.snailmall.order.vo.SubmitOrderResponseVo;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -26,6 +31,8 @@ import java.util.concurrent.ExecutionException;
 @Controller
 public class OrderPageController {
 
+    @Autowired
+    RabbitTemplate rabbitTemplate;
     @Autowired
     private OrderService orderService;
 
@@ -90,5 +97,14 @@ public class OrderPageController {
             }
             return "redirect:http://order.snailmall.com/toTrade";
         }
+    }
+
+    @ResponseBody
+    @RequestMapping("/createOrder")
+    public String createOrder() {
+        OrderEntity orderEntity = new OrderEntity();
+        orderEntity.setOrderSn(UUID.randomUUID().toString());
+        rabbitTemplate.convertAndSend("order-event-exchange", "order.create.order", JSON.toJSONString(orderEntity));
+        return "ok";
     }
 }

@@ -21,6 +21,10 @@ import com.okguo.snailmall.order.vo.*;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.rabbit.annotation.Exchange;
+import org.springframework.amqp.rabbit.annotation.Queue;
+import org.springframework.amqp.rabbit.annotation.QueueBinding;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -68,6 +72,17 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     private ProductFeignService productFeignService;
     @Autowired
     private OrderItemService orderItemService;
+
+
+    @RabbitListener(bindings = @QueueBinding(value = @Queue,//创建临时队列
+            exchange = @Exchange(type = "topic", name = "order-event-exchange"),
+            key = {"order.create.order", "user.*"}
+    ))
+    public void topicRecv(String msg) {
+        System.out.println("topicRecv1: " + msg);
+    }
+
+
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
