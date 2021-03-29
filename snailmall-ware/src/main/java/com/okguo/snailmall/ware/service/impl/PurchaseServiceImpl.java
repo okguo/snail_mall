@@ -118,8 +118,6 @@ public class PurchaseServiceImpl extends ServiceImpl<PurchaseDao, PurchaseEntity
         //2、改变采购单的状态
         this.updateBatchById(collect);
 
-
-
         //3、改变采购项的状态
         collect.forEach((item)->{
             List<PurchaseDetailEntity> entities = detailService.listDetailByPurchaseId(item.getId());

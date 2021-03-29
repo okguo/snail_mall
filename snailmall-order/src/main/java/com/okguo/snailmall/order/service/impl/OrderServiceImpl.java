@@ -197,6 +197,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return responseVo;
     }
 
+    @Override
+    public OrderEntity getOrderStatus(String orderSn) {
+        return this.getOne(new QueryWrapper<OrderEntity>().eq("order_sn",orderSn));
+    }
+
     void saveOrderToDB(OrderCreateTo order) {
         OrderEntity orderEntity = order.getOrder();
         orderEntity.setModifyTime(new Date());

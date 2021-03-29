@@ -1,20 +1,34 @@
 package com.okguo.snailmall.ware.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.okguo.common.exception.RRException;
 import com.okguo.common.to.SkuHasStockVo;
+import com.okguo.common.to.mq.StockLockedTo;
+import com.okguo.common.to.mq.WareOrderTaskDetailTo;
 import com.okguo.common.utils.R;
+import com.okguo.snailmall.ware.entity.WareOrderTaskDetailEntity;
+import com.okguo.snailmall.ware.entity.WareOrderTaskEntity;
+import com.okguo.snailmall.ware.feign.OrderFeignService;
 import com.okguo.snailmall.ware.feign.ProductFeignService;
 import com.okguo.snailmall.ware.service.WareOrderTaskDetailService;
 import com.okguo.snailmall.ware.service.WareOrderTaskService;
 import com.okguo.snailmall.ware.vo.LockStockResult;
 import com.okguo.snailmall.ware.vo.OrderItemVo;
+import com.okguo.snailmall.ware.vo.OrderVo;
 import com.okguo.snailmall.ware.vo.WareSkuLockVo;
+import com.rabbitmq.client.Channel;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.RabbitHandler;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,6 +58,10 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
     private WareOrderTaskService wareOrderTaskService;
     @Autowired
     private WareOrderTaskDetailService wareOrderTaskDetailService;
+
+    public void unlockStock(Long skuId, Long wareId, Integer num) {
+        baseMapper.unlockStock(skuId, wareId, num);
+    }
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -111,14 +129,15 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
 
     /**
      * 解锁库存的场景
-     *  1.下单成功，未支付，超时自动解锁
-     *  2.下单成功，订单异常，保证一致性，解锁库存
+     * 1.下单成功，未支付，超时自动解锁
+     * 2.下单成功，订单异常，保证一致性，解锁库存
      */
-
     @Transactional(rollbackFor = RRException.class)
     @Override
     public Boolean orderLock(WareSkuLockVo wareSkuLockVo) {
-
+        WareOrderTaskEntity wareOrderTaskEntity = new WareOrderTaskEntity();
+        wareOrderTaskEntity.setOrderSn(wareSkuLockVo.getOrderSn());
+        wareOrderTaskService.save(wareOrderTaskEntity);
 
         List<OrderItemVo> orderItemVos = wareSkuLockVo.getLocks();
         List<SkuWareHasStock> skuWareHasStocks = orderItemVos.stream().map(item -> {
@@ -143,10 +162,22 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
                 Long result = wareSkuDao.lockSkuStock(skuId, wareId, count);
                 if (result == 1) {
                     currentSkuLocked = true;
-
                     //发送消息
-                    //TODO
-//                    rabbitTemplate.convertAndSend()
+                    WareOrderTaskDetailEntity wareOrderTaskDetailEntity = new WareOrderTaskDetailEntity();
+                    wareOrderTaskDetailEntity.setLockStatus(1);
+                    wareOrderTaskDetailEntity.setSkuId(skuId);
+                    wareOrderTaskDetailEntity.setSkuNum(skuWareHasStock.getCount());
+                    wareOrderTaskDetailEntity.setTaskId(wareOrderTaskEntity.getId());
+                    wareOrderTaskDetailEntity.setWareId(wareId);
+                    wareOrderTaskDetailService.save(wareOrderTaskDetailEntity);
+
+                    StockLockedTo stockLockedTo = new StockLockedTo();
+                    stockLockedTo.setId(wareOrderTaskEntity.getId());
+                    WareOrderTaskDetailTo to = new WareOrderTaskDetailTo();
+                    BeanUtils.copyProperties(wareOrderTaskDetailEntity, to);
+                    stockLockedTo.setDetail(to);
+
+                    rabbitTemplate.convertAndSend("stock-event-exchange", "stock.locked", JSON.toJSONString(stockLockedTo));
                     break;
                 }
             }
@@ -156,6 +187,11 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
         }
         return true;
     }
+
+    public void releaseStock() {
+
+    }
+
 
     @Data
     static class SkuWareHasStock {
