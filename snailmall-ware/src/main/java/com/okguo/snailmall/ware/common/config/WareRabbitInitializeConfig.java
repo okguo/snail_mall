@@ -21,11 +21,6 @@ public class WareRabbitInitializeConfig {
         return new TopicExchange("stock-event-exchange", true, false);
     }
 
-    @RabbitListener
-    public void listener(Message message){
-
-    }
-
     //String name, boolean durable, boolean exclusive, boolean autoDelete,@Nullable Map<String, Object> arguments
     @Bean
     public Queue stockReleaseStockQueue() {

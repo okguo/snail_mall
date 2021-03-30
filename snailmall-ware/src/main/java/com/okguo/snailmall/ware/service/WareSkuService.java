@@ -2,6 +2,7 @@ package com.okguo.snailmall.ware.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.okguo.common.to.SkuHasStockVo;
+import com.okguo.common.to.mq.StockLockedTo;
 import com.okguo.common.utils.PageUtils;
 import com.okguo.snailmall.ware.entity.WareSkuEntity;
 import com.okguo.snailmall.ware.vo.LockStockResult;
@@ -27,6 +28,8 @@ public interface WareSkuService extends IService<WareSkuEntity> {
 
     Boolean orderLock(WareSkuLockVo wareSkuLockVo);
 
-    void unlockStock();
+    void unlockStock(StockLockedTo stockLockedTo);
+
+    void unlockStockDB(Long skuId, Long wareId, Integer num, Long detailId);
 }
 

@@ -18,7 +18,6 @@ import com.okguo.snailmall.order.interceptor.LoginUserInterceptor;
 import com.okguo.snailmall.order.service.OrderItemService;
 import com.okguo.snailmall.order.to.OrderCreateTo;
 import com.okguo.snailmall.order.vo.*;
-import io.seata.spring.annotation.GlobalTransactional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.annotation.Exchange;
@@ -141,7 +140,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return orderConfirmVo;
     }
 
-    @GlobalTransactional
+//    @GlobalTransactional
     @Transactional(rollbackFor = Exception.class)
     @Override
     public SubmitOrderResponseVo submitOrder(OrderSubmitVo submitVo) {
@@ -200,6 +199,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     @Override
     public OrderEntity getOrderStatus(String orderSn) {
         return this.getOne(new QueryWrapper<OrderEntity>().eq("order_sn",orderSn));
+    }
+
+    @Override
+    public void closeOrder(OrderEntity orderEntity) {
+
     }
 
     void saveOrderToDB(OrderCreateTo order) {

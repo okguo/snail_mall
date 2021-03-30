@@ -22,14 +22,6 @@ import java.util.Map;
 @Configuration
 public class SnailMallOrderRabbitMQConfig {
 
-    @RabbitListener(queues = "order.release.order.queue")
-    public void testListen(String orderString, Channel channel, Message message) throws IOException {
-        OrderEntity orderEntity = JSONObject.parseObject(orderString, OrderEntity.class);
-        log.info("SnailMallOrderRabbitMQConfig->收到过期订单的信息，准备关闭订单，订单号:" + orderEntity.getOrderSn());
-        channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
-    }
-
-
     @Bean
     public Queue orderDelayQueue() {
         Map<String, Object> arguments = new HashMap<>();

@@ -2,6 +2,7 @@ package com.okguo.snailmall.ware.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.okguo.common.exception.RRException;
 import com.okguo.common.to.SkuHasStockVo;
 import com.okguo.common.to.mq.StockLockedTo;
@@ -58,9 +59,45 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
     private WareOrderTaskService wareOrderTaskService;
     @Autowired
     private WareOrderTaskDetailService wareOrderTaskDetailService;
+    @Autowired
+    private OrderFeignService orderFeignService;
 
-    public void unlockStock(Long skuId, Long wareId, Integer num) {
+    public void unlockStock(StockLockedTo stockLockedTo) {
+
+        Long taskId = stockLockedTo.getId();
+        Long skuId = stockLockedTo.getDetail().getSkuId();
+        Long detailId = stockLockedTo.getDetail().getId();
+
+        WareOrderTaskDetailEntity detailEntity = wareOrderTaskDetailService.getById(detailId);
+        if (detailEntity != null) {
+            WareOrderTaskEntity taskEntity = wareOrderTaskService.getById(taskId);
+            String orderSn = taskEntity.getOrderSn();
+            R r = orderFeignService.getOrderStatus(orderSn);
+            if (r.getCode() == 0) {
+                OrderVo orderVo = r.getData(new TypeReference<OrderVo>() {
+                });
+                //如果是取消状态才能解锁库存
+                if (orderVo == null || orderVo.getStatus() == 4) {
+                    if (detailEntity.getLockStatus() == 1) {
+                        unlockStockDB(skuId, stockLockedTo.getDetail().getWareId(), stockLockedTo.getDetail().getSkuNum(),detailId);
+                    }
+                }
+            }else {
+                throw new RuntimeException("远程查询订单信息失败");
+            }
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void unlockStockDB(Long skuId, Long wareId, Integer num,Long detailId) {
+        //释放库存
         baseMapper.unlockStock(skuId, wareId, num);
+        //更新工作单状态
+        WareOrderTaskDetailEntity entity = new WareOrderTaskDetailEntity();
+        entity.setId(detailId);
+        entity.setLockStatus(2);
+        wareOrderTaskDetailService.updateById(entity);
     }
 
     @Override

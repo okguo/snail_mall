@@ -1,7 +1,7 @@
 package com.okguo.snailmall.order.config;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import io.seata.rm.datasource.DataSourceProxy;
+//import com.alibaba.druid.pool.DruidDataSource;
+//import io.seata.rm.datasource.DataSourceProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.context.annotation.Bean;
@@ -20,9 +20,9 @@ public class SeataDataSourceProxyConfig {
     @Autowired
     DataSourceProperties dataSourceProperties;
 
-    @Bean
-    public DataSource dataSource(DataSourceProperties properties) {
-        return new DataSourceProxy(properties.initializeDataSourceBuilder().type(DruidDataSource.class).build());
-    }
+//    @Bean
+//    public DataSource dataSource(DataSourceProperties properties) {
+////        return new DataSourceProxy(properties.initializeDataSourceBuilder().type(DruidDataSource.class).build());
+//    }
 
 }
