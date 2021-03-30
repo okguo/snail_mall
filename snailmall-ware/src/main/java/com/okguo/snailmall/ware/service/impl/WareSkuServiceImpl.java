@@ -100,6 +100,19 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
         wareOrderTaskDetailService.updateById(entity);
     }
 
+    //防止订单服务卡顿，订单状态一直不能自动取消，导致库存不能被释放
+    @Override
+    public void checkWareRelease(String orderSn) {
+        WareOrderTaskEntity wareOrderTaskEntity = wareOrderTaskService.getOne(new QueryWrapper<WareOrderTaskEntity>().eq("order_sn", orderSn));
+        List<WareOrderTaskDetailEntity> wareOrderTaskDetailEntities = wareOrderTaskDetailService.list(new QueryWrapper<WareOrderTaskDetailEntity>().eq("task_id", wareOrderTaskEntity.getId()));
+        for (WareOrderTaskDetailEntity entity : wareOrderTaskDetailEntities) {
+            if (entity.getLockStatus() == 1) {
+                this.unlockStockDB(entity.getSkuId(),entity.getWareId(),entity.getSkuNum(),entity.getId());
+            }
+        }
+
+    }
+
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
 

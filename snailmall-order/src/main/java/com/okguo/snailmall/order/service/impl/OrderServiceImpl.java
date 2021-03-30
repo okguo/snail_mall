@@ -5,6 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.okguo.common.exception.BizCodeEnum;
 import com.okguo.common.exception.RRException;
+import com.okguo.common.to.OrderTo;
 import com.okguo.common.utils.R;
 import com.okguo.common.vo.MemberVO;
 import com.okguo.snailmall.order.constant.OrderConstant;
@@ -24,6 +25,8 @@ import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -71,17 +74,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     private ProductFeignService productFeignService;
     @Autowired
     private OrderItemService orderItemService;
-
-
-    @RabbitListener(bindings = @QueueBinding(value = @Queue,//创建临时队列
-            exchange = @Exchange(type = "topic", name = "order-event-exchange"),
-            key = {"order.create.order", "user.*"}
-    ))
-    public void topicRecv(String msg) {
-        System.out.println("topicRecv1: " + msg);
-    }
-
-
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -190,7 +184,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             responseVo.setCode(3);
             throw new RRException(BizCodeEnum.NO_STOCK_EXCEPTION.getMsg(), BizCodeEnum.NO_STOCK_EXCEPTION.getCode());
         }
-        int i = 10 / 0;
+
+        //TODO 订单创建成功发送消息
+        rabbitTemplate.convertAndSend("order-event-exchange","order.create.order", JSON.toJSONString(order.getOrder()));
+
         log.info("submitOrder->------");
         responseVo.setOrder(order.getOrder());
         return responseVo;
@@ -203,7 +200,16 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     @Override
     public void closeOrder(OrderEntity orderEntity) {
-
+        OrderEntity order = this.getById(orderEntity.getId());
+        //如果订单为待付款状态则需要关单
+        if (order.getStatus().equals(OrderStatusEnum.CREATE_NEW.getCode())) {
+            order.setStatus(OrderStatusEnum.CANCELED.getCode());
+            this.updateById(order);
+            //关闭订单成功后，向库存方发送请求，检查库存有没有释放
+            OrderTo orderTo = new OrderTo();
+            BeanUtils.copyProperties(order,orderTo);
+            rabbitTemplate.convertAndSend("order-event-exchange","order.release.other",orderTo);
+        }
     }
 
     void saveOrderToDB(OrderCreateTo order) {

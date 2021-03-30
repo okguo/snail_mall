@@ -31,5 +31,7 @@ public interface WareSkuService extends IService<WareSkuEntity> {
     void unlockStock(StockLockedTo stockLockedTo);
 
     void unlockStockDB(Long skuId, Long wareId, Integer num, Long detailId);
+
+    void checkWareRelease(String orderSn);
 }
 

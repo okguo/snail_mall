@@ -2,6 +2,7 @@ package com.okguo.snailmall.ware.listener;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.okguo.common.to.OrderTo;
 import com.okguo.common.to.mq.StockLockedTo;
 import com.okguo.common.utils.R;
 import com.okguo.snailmall.ware.entity.WareOrderTaskDetailEntity;
@@ -41,6 +42,17 @@ public class StockReleaseListener {
         StockLockedTo stockLockedTo = JSON.parseObject(stockLockedToString, StockLockedTo.class);
         try {
             wareSkuService.unlockStock(stockLockedTo);
+            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+        } catch (Exception e) {
+            channel.basicReject(message.getMessageProperties().getDeliveryTag(), true);
+        }
+    }
+
+    @RabbitHandler
+    void handleStockLockRelease(OrderTo orderTo, Message message, Channel channel) throws IOException {
+        log.info("收到订单关闭消息，开始检查库存是否释放！！！消息体为：" + JSON.toJSONString(orderTo));
+        try {
+            wareSkuService.checkWareRelease(orderTo.getOrderSn());
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
         } catch (Exception e) {
             channel.basicReject(message.getMessageProperties().getDeliveryTag(), true);
