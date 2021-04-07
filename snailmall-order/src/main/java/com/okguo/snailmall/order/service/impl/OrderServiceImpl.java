@@ -10,6 +10,7 @@ import com.okguo.common.utils.R;
 import com.okguo.common.vo.MemberVO;
 import com.okguo.snailmall.order.constant.OrderConstant;
 import com.okguo.snailmall.order.entity.OrderItemEntity;
+import com.okguo.snailmall.order.entity.PaymentInfoEntity;
 import com.okguo.snailmall.order.enume.OrderStatusEnum;
 import com.okguo.snailmall.order.feign.CartFeignService;
 import com.okguo.snailmall.order.feign.MemberFeignService;
@@ -17,6 +18,7 @@ import com.okguo.snailmall.order.feign.ProductFeignService;
 import com.okguo.snailmall.order.feign.WareFeignService;
 import com.okguo.snailmall.order.interceptor.LoginUserInterceptor;
 import com.okguo.snailmall.order.service.OrderItemService;
+import com.okguo.snailmall.order.service.PaymentInfoService;
 import com.okguo.snailmall.order.to.OrderCreateTo;
 import com.okguo.snailmall.order.vo.*;
 import lombok.extern.slf4j.Slf4j;
@@ -76,6 +78,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     private OrderItemService orderItemService;
     @Autowired
     private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private PaymentInfoService paymentInfoService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -222,15 +226,46 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         payVo.setSubject(orderItemEntity.getSkuName());
         payVo.setBody(orderItemEntity.getSkuAttrsVals());
         payVo.setOut_trade_no(orderEntity.getOrderSn());
-        payVo.setTotal_amount(orderEntity.getTotalAmount().setScale(2,BigDecimal.ROUND_UP).toString());
+        payVo.setTotal_amount(orderEntity.getTotalAmount().setScale(2, BigDecimal.ROUND_UP).toString());
         return payVo;
     }
 
     @Override
     public PageUtils queryPageWithItem(Map<String, Object> params) {
+        MemberVO memberVO = LoginUserInterceptor.threadLocal.get();
+        IPage<OrderEntity> page = this.page(new Query<OrderEntity>().getPage(params),
+                new QueryWrapper<OrderEntity>().eq("member_id", memberVO.getId()).orderByDesc("id"));
+        List<OrderEntity> collect = page.getRecords().stream().map(e -> {
+            OrderEntity orderEntity = new OrderEntity();
+            BeanUtils.copyProperties(e, orderEntity);
+            List<OrderItemEntity> orderItemEntities = orderItemService.listByOrderSn(e.getOrderSn());
+            orderEntity.setOrderItemEntities(orderItemEntities);
+            return orderEntity;
+        }).collect(Collectors.toList());
+        page.setRecords(collect);
 
+        return new PageUtils(page);
+    }
 
-        return null;
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public String handlePayResult(PayAsyncVo vo) {
+        //1.支付流水
+        PaymentInfoEntity paymentInfo = new PaymentInfoEntity();
+        paymentInfo.setOrderSn(vo.getOut_trade_no());
+        paymentInfo.setAlipayTradeNo(vo.getTrade_no());
+        paymentInfo.setTotalAmount(new BigDecimal(vo.getTotal_amount()));
+        paymentInfo.setCallbackTime(vo.getNotify_time());
+        paymentInfo.setSubject(vo.getSubject());
+        paymentInfo.setPaymentStatus(vo.getTrade_status());
+        paymentInfoService.save(paymentInfo);
+        //2.修改订单状态
+
+        if (vo.getTrade_status().equals("TRADE_SUCCESS") || vo.getTrade_status().equals("TRADE_FINISHED")) {
+            this.baseMapper.updateOrderStatus(vo.getOut_trade_no(), OrderStatusEnum.PAYED.getCode());
+        }
+
+        return "success";
     }
 
     void saveOrderToDB(OrderCreateTo order) {

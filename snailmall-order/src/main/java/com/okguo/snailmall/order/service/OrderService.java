@@ -3,10 +3,7 @@ package com.okguo.snailmall.order.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.okguo.common.utils.PageUtils;
 import com.okguo.snailmall.order.entity.OrderEntity;
-import com.okguo.snailmall.order.vo.OrderConfirmVo;
-import com.okguo.snailmall.order.vo.OrderSubmitVo;
-import com.okguo.snailmall.order.vo.PayVo;
-import com.okguo.snailmall.order.vo.SubmitOrderResponseVo;
+import com.okguo.snailmall.order.vo.*;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -33,5 +30,7 @@ public interface OrderService extends IService<OrderEntity> {
     PayVo queryOrderByOrderSn(String orderSn);
 
     PageUtils queryPageWithItem(Map<String, Object> params);
+
+    String handlePayResult(PayAsyncVo vo);
 }
 

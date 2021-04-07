@@ -20,14 +20,15 @@ import javax.servlet.http.HttpSession;
 @Component
 public class LoginUserInterceptor implements HandlerInterceptor {
 
-    public ThreadLocal<MemberVO> threadLocal = new ThreadLocal<>();
+    public static ThreadLocal<MemberVO> threadLocal = new ThreadLocal<>();
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-
+        AntPathMatcher antPathMatcher = new AntPathMatcher();
         //远程访问订单服务，默认会先走到拦截器，进行登录操作。
-        boolean match = new AntPathMatcher().match("/order/order/status/**", request.getRequestURI());
-        if (match) {
+        boolean match = antPathMatcher.match("/order/order/status/**", request.getRequestURI());
+        boolean match1 = antPathMatcher.match("/payed/notify", request.getRequestURI());
+        if (match || match1) {
             return true;
         }
 
