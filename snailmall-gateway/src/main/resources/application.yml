@@ -63,3 +63,8 @@ spring:
           predicates:
             - Host=order.snailmall.com
 
+        - id: snailmall_member_router
+          uri: lb://snailmall-member
+          predicates:
+            - Host=member.snailmall.com
+

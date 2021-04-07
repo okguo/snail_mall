@@ -134,7 +134,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return orderConfirmVo;
     }
 
-//    @GlobalTransactional
+    //    @GlobalTransactional
     @Transactional(rollbackFor = Exception.class)
     @Override
     public SubmitOrderResponseVo submitOrder(OrderSubmitVo submitVo) {
@@ -186,7 +186,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         }
 
         //TODO 订单创建成功发送消息
-        rabbitTemplate.convertAndSend("order-event-exchange","order.create.order", JSON.toJSONString(order.getOrder()));
+        rabbitTemplate.convertAndSend("order-event-exchange", "order.create.order", JSON.toJSONString(order.getOrder()));
 
         log.info("submitOrder->------");
         responseVo.setOrder(order.getOrder());
@@ -195,7 +195,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     @Override
     public OrderEntity getOrderStatus(String orderSn) {
-        return this.getOne(new QueryWrapper<OrderEntity>().eq("order_sn",orderSn));
+        return this.getOne(new QueryWrapper<OrderEntity>().eq("order_sn", orderSn));
     }
 
     @Override
@@ -207,9 +207,30 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             this.updateById(order);
             //关闭订单成功后，向库存方发送请求，检查库存有没有释放
             OrderTo orderTo = new OrderTo();
-            BeanUtils.copyProperties(order,orderTo);
-            rabbitTemplate.convertAndSend("order-event-exchange","order.release.other",orderTo);
+            BeanUtils.copyProperties(order, orderTo);
+            rabbitTemplate.convertAndSend("order-event-exchange", "order.release.other", orderTo);
         }
+    }
+
+    @Override
+    public PayVo queryOrderByOrderSn(String orderSn) {
+        OrderEntity orderEntity = baseMapper.selectOne(new QueryWrapper<OrderEntity>().eq("order_sn", orderSn));
+
+        PayVo payVo = new PayVo();
+        List<OrderItemEntity> orderItemEntities = orderItemService.list(new QueryWrapper<OrderItemEntity>().eq("order_sn", orderSn));
+        OrderItemEntity orderItemEntity = orderItemEntities.get(0);
+        payVo.setSubject(orderItemEntity.getSkuName());
+        payVo.setBody(orderItemEntity.getSkuAttrsVals());
+        payVo.setOut_trade_no(orderEntity.getOrderSn());
+        payVo.setTotal_amount(orderEntity.getTotalAmount().setScale(2,BigDecimal.ROUND_UP).toString());
+        return payVo;
+    }
+
+    @Override
+    public PageUtils queryPageWithItem(Map<String, Object> params) {
+
+
+        return null;
     }
 
     void saveOrderToDB(OrderCreateTo order) {

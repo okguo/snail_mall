@@ -72,6 +72,13 @@ Seata处理分布式事务
     2、安装事务协调器 seata-server,并进行seata服务器配置（注册中心、事务日志）
     3、配置seata代理数据源  见:SeataDataSourceProxyConfig (DataSourceProxy)
 
+保证消息的可靠性
+    1：消息发送出去，由于网络问题未抵达服务器
+        a.做好容错方法(try-catch),失败后要有重试机制，可写入数据库，定期扫描重发
+        b.做好日志记录，每个消息无论是否发送成功都应该被记录
+        c.做好定期重发，如果消息未发送成功，则定期重新发送
+    2：消息确认机制，包括消息生产者和消息消费之（publisher consumer）
+
 
 
 

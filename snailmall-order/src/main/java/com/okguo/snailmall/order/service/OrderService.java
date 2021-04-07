@@ -5,6 +5,7 @@ import com.okguo.common.utils.PageUtils;
 import com.okguo.snailmall.order.entity.OrderEntity;
 import com.okguo.snailmall.order.vo.OrderConfirmVo;
 import com.okguo.snailmall.order.vo.OrderSubmitVo;
+import com.okguo.snailmall.order.vo.PayVo;
 import com.okguo.snailmall.order.vo.SubmitOrderResponseVo;
 
 import java.util.Map;
@@ -28,5 +29,9 @@ public interface OrderService extends IService<OrderEntity> {
     OrderEntity getOrderStatus(String orderSn);
 
     void closeOrder(OrderEntity orderEntity);
+
+    PayVo queryOrderByOrderSn(String orderSn);
+
+    PageUtils queryPageWithItem(Map<String, Object> params);
 }
 
