@@ -226,7 +226,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         payVo.setSubject(orderItemEntity.getSkuName());
         payVo.setBody(orderItemEntity.getSkuAttrsVals());
         payVo.setOut_trade_no(orderEntity.getOrderSn());
-        payVo.setTotal_amount(orderEntity.getTotalAmount().setScale(2, BigDecimal.ROUND_UP).toString());
+        payVo.setTotal_amount(orderEntity.getPayAmount().setScale(2, BigDecimal.ROUND_UP).toString());
         return payVo;
     }
 

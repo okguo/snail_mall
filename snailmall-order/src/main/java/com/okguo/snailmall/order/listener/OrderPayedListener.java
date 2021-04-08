@@ -1,5 +1,6 @@
 package com.okguo.snailmall.order.listener;
 
+import com.alibaba.fastjson.JSON;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.okguo.snailmall.order.config.AlipayTemplate;
@@ -11,7 +12,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 @Slf4j
@@ -24,25 +27,24 @@ public class OrderPayedListener {
     private AlipayTemplate alipayTemplate;
 
     @PostMapping("/payed/notify")
-    public String handleAliPayed(PayAsyncVo vo, HttpServletRequest request) throws AlipayApiException {
-        //验证签名
-        Map<String, String> params = new HashMap<>();
+    public String handleAliPayed(PayAsyncVo vo, HttpServletRequest request) throws AlipayApiException, UnsupportedEncodingException {
+        log.info("OrderPayedListener->handleAliPayed->PayAsyncVo:" + JSON.toJSONString(vo));
+        //验签
+        Map<String, String> params = new HashMap<String, String>();
         Map<String, String[]> requestParams = request.getParameterMap();
-        for (Object o : requestParams.keySet()) {
-            String name = (String) o;
-            String[] values = requestParams.get(name);
+        for (Iterator<String> iter = requestParams.keySet().iterator(); iter.hasNext(); ) {
+            String name = (String) iter.next();
+            String[] values = (String[]) requestParams.get(name);
             String valueStr = "";
             for (int i = 0; i < values.length; i++) {
                 valueStr = (i == values.length - 1) ? valueStr + values[i]
                         : valueStr + values[i] + ",";
             }
-            //乱码解决，这段代码在出现乱码时使用。如果mysign和sign不相等也可以使用这段代码转化
-            //valueStr = new String(valueStr.getBytes("ISO-8859-1"), "gbk");
+            //乱码解决，这段代码在出现乱码时使用
+            valueStr = new String(valueStr.getBytes("ISO-8859-1"), "utf-8");
             params.put(name, valueStr);
         }
-        //获取支付宝的通知返回参数，可参考技术文档中页面跳转同步通知参数列表(以下仅供参考)//
-        //计算得出通知验证结果
-        //boolean AlipaySignature.rsaCheckV1(Map<String, String> params, String publicKey, String charset, String sign_type)
+        log.info("OrderPayedListener->handleAliPayed->params:" + JSON.toJSONString(params));
         boolean verifyResult = AlipaySignature.rsaCheckV1(params, alipayTemplate.getAlipay_public_key(), alipayTemplate.getCharset(), alipayTemplate.getSign_type());
 
         if (verifyResult) {

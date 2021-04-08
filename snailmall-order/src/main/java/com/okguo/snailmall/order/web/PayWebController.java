@@ -29,7 +29,6 @@ public class PayWebController {
 
         String pay = alipayTemplate.pay(payVo);
 
-        log.info("payOrder->" + JSON.toJSONString(pay));
         return pay;
     }
 
