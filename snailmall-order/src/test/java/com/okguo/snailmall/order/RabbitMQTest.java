@@ -2,8 +2,7 @@ package com.okguo.snailmall.order;
 
 import com.alibaba.fastjson.JSON;
 import com.okguo.snailmall.order.entity.OrderReturnReasonEntity;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.DirectExchange;
@@ -11,7 +10,6 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -21,7 +19,6 @@ import java.util.HashMap;
  * @Author: Guoyongfu
  * @Date: 2021/03/16 19:30
  */
-@RunWith(SpringRunner.class)
 @SpringBootTest
 public class RabbitMQTest {
 

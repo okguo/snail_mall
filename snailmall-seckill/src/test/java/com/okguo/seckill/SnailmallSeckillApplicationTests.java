@@ -1,13 +1,13 @@
-package com.okguo.snailmall.order;
+package com.okguo.seckill;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SnailmallOrderApplicationTests {
+class SnailmallSeckillApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }

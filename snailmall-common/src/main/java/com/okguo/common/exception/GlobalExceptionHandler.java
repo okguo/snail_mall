@@ -1,7 +1,6 @@
 package com.okguo.common.exception;
 
 import com.alibaba.fastjson.support.spring.FastJsonJsonView;
-import com.okguo.common.exception.RRException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;

@@ -23,6 +23,7 @@
         <module>snailmall-elasticsearch</module>
         <module>snailmall-auth-server</module>
         <module>snailmall-cart</module>
+        <module>snailmall-seckill</module>
     </modules>
 
 
