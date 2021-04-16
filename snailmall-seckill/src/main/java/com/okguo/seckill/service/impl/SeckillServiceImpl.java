@@ -16,8 +16,7 @@ import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,6 +48,32 @@ public class SeckillServiceImpl implements SeckillService {
         }
     }
 
+    @Override
+    public List<SeckillSkuRelationVo> queryCurrentSeckillSkus() {
+        //1.确定当前时间数据哪个秒杀场次
+        long time = new Date().getTime();
+        Set<String> keys = redisTemplate.keys(SESSION_CACHE_PREFIX + "*");
+        assert keys != null;
+        for (String key : keys) {
+            String replace = key.replace(SESSION_CACHE_PREFIX, "");
+            String[] s = replace.split("_");
+            long start = Long.parseLong(s[0]);
+            long end = Long.parseLong(s[1]);
+            if (time >= start && time <= end) {
+                //2.获取当前秒杀场次的所有商品信息
+                List<String> range = redisTemplate.opsForList().range(key, -100, 100);
+                BoundHashOperations<String, String, String> hashOps = redisTemplate.boundHashOps(SECKILL_CACHE_PREFIX);
+                assert range != null;
+                List<String> list = hashOps.multiGet(range);
+                if (list != null && list.size() > 0) {
+                    return list.stream().map(e -> JSON.parseObject(e, SeckillSkuRelationVo.class)).collect(Collectors.toList());
+                }
+                break;
+            }
+        }
+        return new ArrayList<>();
+    }
+
     private void saveSessionInfos(List<Latest3DaySessionVo> sessionData) {
         sessionData.forEach(session -> {
             long start = session.getStartTime().getTime();
@@ -56,8 +81,8 @@ public class SeckillServiceImpl implements SeckillService {
             String key = SESSION_CACHE_PREFIX + start + "_" + end;
 
             boolean aBoolean = redisTemplate.hasKey(key);
-            if (!aBoolean){
-                List<String> collect = session.getSkuRelationEntities().stream().map(e -> e.getSkuId().toString()).collect(Collectors.toList());
+            if (!aBoolean) {
+                List<String> collect = session.getSkuRelationEntities().stream().map(e -> e.getPromotionSessionId() + "_" + e.getSkuId()).collect(Collectors.toList());
                 redisTemplate.opsForList().leftPushAll(key, collect);
             }
         });
@@ -69,7 +94,7 @@ public class SeckillServiceImpl implements SeckillService {
             List<SeckillSkuRelationVo> skuRelationVos = session.getSkuRelationEntities();
             skuRelationVos.forEach(skuRelationVo -> {
                 String token = UUID.randomUUID().toString().replace("-", "");
-                if (!boundHashOps.hasKey(skuRelationVo.getSkuId().toString())) {
+                if (!boundHashOps.hasKey(skuRelationVo.getPromotionSessionId() + "_" + skuRelationVo.getSkuId())) {
                     //0.秒杀基本信息
                     //1.sku基本信息
                     R r = productFeignService.querySkuInfo(skuRelationVo.getSkuId());
@@ -81,7 +106,7 @@ public class SeckillServiceImpl implements SeckillService {
                     skuRelationVo.setEndTime(session.getEndTime().getTime());
                     //3.随机码  一个商品一个随机码 防止攻击
                     skuRelationVo.setRandomCode(token);
-                    boundHashOps.put(skuRelationVo.getSkuId().toString(), JSON.toJSONString(skuRelationVo));
+                    boundHashOps.put(skuRelationVo.getPromotionSessionId().toString() + "_" + skuRelationVo.getSkuId(), JSON.toJSONString(skuRelationVo));
 
                     //4.引入分布式信号量，设置库存数为信号总数  作用：限流
                     RSemaphore semaphore = redissonClient.getSemaphore(SKU_STOCK_SEMAPHORE + token);

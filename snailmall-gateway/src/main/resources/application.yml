@@ -75,3 +75,8 @@ spring:
           predicates:
             - Host=member.snailmall.com
 
+        - id: snailmall_seckill_router
+          uri: lb://snailmall-seckill
+          predicates:
+            - Host=seckill.snailmall.com
+

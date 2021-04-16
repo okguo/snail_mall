@@ -95,10 +95,12 @@
             </b>
             <ul>
                 <li>
-                    <a th:href="${session.loginUser == null?'http://auth.snailmall.com/login.html':''}" th:text="${session.loginUser == null?'你好，请登录':session.loginUser.username}" >你好，请登录:</a>
+                    <a th:href="${session.loginUser == null?'http://auth.snailmall.com/login.html':''}"
+                       th:text="${session.loginUser == null?'你好，请登录':session.loginUser.username}">你好，请登录:</a>
                 </li>
                 <li>
-                    <a th:href="${session.loginUser == null?'http://auth.snailmall.com/reg.html':''}" class="li_2" th:text="${session.loginUser == null?'免费注册':''}">免费注册</a>
+                    <a th:href="${session.loginUser == null?'http://auth.snailmall.com/reg.html':''}" class="li_2"
+                       th:text="${session.loginUser == null?'免费注册':''}">免费注册</a>
                 </li>
                 <span>|</span>
                 <li>
@@ -113,7 +115,7 @@
             <input id="searchText" type="text" placeholder=""/>
             <span style="background: url(../staticindex/img/img_12.png) 0 -1px;"></span>
             <!--<button><i class="glyphicon"></i></button>-->
-            <a href="javascript:search();"><img src="/static/index/img/img_09.png" /></a>
+            <a href="javascript:search();"><img src="/static/index/img/img_09.png"/></a>
         </div>
         <div class="header_ico">
             <div class="header_gw">
@@ -200,7 +202,8 @@
             <div class="header_main_left">
                 <ul th:each="category:${categorys}">
                     <li>
-                        <a href="/static/#" class="header_main_left_a" th:attr="ctg-data=${category.catId}" ><b th:text="${category.name}"></b></a>
+                        <a href="/static/#" class="header_main_left_a" th:attr="ctg-data=${category.catId}"><b
+                                th:text="${category.name}"></b></a>
                     </li>
                 </ul>
 
@@ -241,8 +244,11 @@
                         <div class="user_info_show">
                             <p class="">Hi, 欢迎来到!</p>
                             <p>
-                                <a th:href="${session.loginUser == null?'http://auth.snailmall.com/login.html':''}" class="" th:text="${session.loginUser == null?'登录':session.loginUser.username}">登录</a>
-                                <a th:href="${session.loginUser == null?'http://auth.snailmall.com/reg.html':''}" class="" th:text="${session.loginUser == null?'注册':''}">注册</a>
+                                <a th:href="${session.loginUser == null?'http://auth.snailmall.com/login.html':''}"
+                                   class=""
+                                   th:text="${session.loginUser == null?'登录':session.loginUser.username}">登录</a>
+                                <a th:href="${session.loginUser == null?'http://auth.snailmall.com/reg.html':''}"
+                                   class="" th:text="${session.loginUser == null?'注册':''}">注册</a>
                             </p>
                         </div>
                     </div>
@@ -518,33 +524,8 @@
         <div class="swiper-container swiper_section_second_list_left">
             <div class="swiper-wrapper">
                 <div class="swiper-slide">
-                    <ul>
-                        <li>
-                            <img src="/static/index/img/section_second_list_img1.jpg" alt="">
-                            <p>花王 (Merries) 妙而舒 纸尿裤 大号 L54片 尿不湿（9-14千克） （日本官方直采） 花王 (Merries) 妙而舒 纸尿裤 大号 L54片
-                                尿不湿（9-14千</p>
-                            <span>¥83.9</span><s>¥99.9</s>
-                        </li>
-                        <li>
-                            <img src="/static/index/img/section_second_list_img2.jpg" alt="">
-                            <p>华为mate9 4GB+32GB版 月光银 移动联通电信4G手机 双卡</p>
-                            <span>¥17.90</span><s>¥29.90</s>
-                        </li>
-                        <li>
-                            <img src="/static/index/img/section_second_list_img3.jpg" alt="">
-                            <p>超能 植翠低泡洗衣液（鲜艳亮丽）2kg/袋装（新老包装随机</p>
-                            <span>¥20.70</span><s>¥44.90</s>
-                        </li>
-                        <li>
-                            <img src="/static/index/img/section_second_list_img4.jpg" alt="">
-                            <p>长城（GreatWall）红酒 特选5年橡木桶解百纳干红葡萄酒 整</p>
-                            <span>¥399.00</span><s>¥599.00</s>
-                        </li>
-                        <li>
-                            <img src="/static/index/img/section_second_list_img5.jpg" alt="">
-                            <p>惠普(HP)暗影精灵2代Pro 15.6英寸游戏笔记本电脑(i5-7300H</p>
-                            <span>¥5999.00</span><s>¥6499.00</s>
-                        </li>
+                    <ul id="seckillContentSku">
+
                     </ul>
                 </div>
                 <div class="swiper-slide">
@@ -610,6 +591,27 @@
         var keyword = $("#searchText").val()
         window.location.href = "http://search.snailmall.com/list.html?keyword=" + keyword;
     }
+
+    $.get("http://seckill.snailmall.com/currentSeckillSkus", function (data) {
+        if (data.data.length > 0) {
+            data.data.forEach(function (item) {
+                $("<li></li>>")
+                    .append($("<img style='width: 130px;height: 130px;' src='" + item.skuInfoVo.skuDefaultImg + "'/>"))
+                    .append($("<p>" + item.skuInfoVo.skuSubtitle + "</p>"))
+                    .append($("<span>" + item.seckillPrice + "</span>"))
+                    .append($("<s>" + item.skuInfoVo.price + "</s>"))
+                    .appendTo("#seckillContentSku");
+            })
+        }
+        /**
+         * <li>
+         <img src="/static/index/img/section_second_list_img1.jpg" alt="">
+         <p>花王 (Merries) 妙而舒 纸尿裤 大号 L54片 尿不湿（9-14千克） （日本官方直采） 花王 (Merries) 妙而舒 纸尿裤 大号 L54片
+         尿不湿（9-14千</p>
+         <span>¥83.9</span><s>¥99.9</s>
+         </li>
+         */
+    })
 
 </script>
 <script type="text/javascript" src="/static/index/js/text.js"></script>
