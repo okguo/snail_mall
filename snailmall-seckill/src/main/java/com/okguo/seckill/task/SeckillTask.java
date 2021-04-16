@@ -27,7 +27,7 @@ public class SeckillTask {
     @Autowired
     private RedissonClient redissonClient;
 
-    private final String SECKILL_SHELF_LOCK = "seckill:shelf:lock";
+    public final String SECKILL_SHELF_LOCK = "seckill:shelf:lock";
 
     @Scheduled(cron = "0 * * * * ?")
     public void shelfSeckillSkuLatest3Days() {

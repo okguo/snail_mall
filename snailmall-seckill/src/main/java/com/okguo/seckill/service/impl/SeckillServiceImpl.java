@@ -74,6 +74,26 @@ public class SeckillServiceImpl implements SeckillService {
         return new ArrayList<>();
     }
 
+    @Override
+    public SeckillSkuRelationVo querySkuSeckillInfo(Long skuId) {
+        BoundHashOperations<String, String, String> hashOps = redisTemplate.boundHashOps(SECKILL_CACHE_PREFIX);
+        Set<String> keys = hashOps.keys();
+        if (keys != null && keys.size() > 0) {
+            for (String key : keys) {
+                if (Long.parseLong(key.split("_")[1]) == skuId) {
+                    SeckillSkuRelationVo seckillSkuRelationVo = JSON.parseObject(hashOps.get(key), SeckillSkuRelationVo.class);
+                    long time = new Date().getTime();
+                    assert seckillSkuRelationVo != null;
+                    if (time < seckillSkuRelationVo.getStartTime() || time > seckillSkuRelationVo.getEndTime()) {
+                        seckillSkuRelationVo.setRandomCode(null);
+                    }
+                    return seckillSkuRelationVo;
+                }
+            }
+        }
+        return null;
+    }
+
     private void saveSessionInfos(List<Latest3DaySessionVo> sessionData) {
         sessionData.forEach(session -> {
             long start = session.getStartTime().getTime();

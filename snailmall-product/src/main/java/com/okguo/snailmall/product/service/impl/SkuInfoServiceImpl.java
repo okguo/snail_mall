@@ -1,8 +1,12 @@
 package com.okguo.snailmall.product.service.impl;
 
+import com.alibaba.fastjson.TypeReference;
+import com.okguo.common.utils.R;
 import com.okguo.snailmall.product.entity.SkuImagesEntity;
 import com.okguo.snailmall.product.entity.SpuInfoDescEntity;
+import com.okguo.snailmall.product.feign.SeckillFeignService;
 import com.okguo.snailmall.product.service.*;
+import com.okguo.snailmall.product.vo.SeckillSkuInfoVo;
 import com.okguo.snailmall.product.vo.SkuItemSaleAttrVo;
 import com.okguo.snailmall.product.vo.SkuItemVo;
 import com.okguo.snailmall.product.vo.SpuItemAttrGroupVo;
@@ -40,6 +44,8 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
     private SkuSaleAttrValueService skuSaleAttrValueService;
     @Autowired
     private ThreadPoolExecutor threadPoolExecutor;
+    @Autowired
+    private SeckillFeignService seckillFeignService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -153,8 +159,18 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
             skuItemVo.setImages(imagesEntities);
         }, threadPoolExecutor);
 
+        CompletableFuture<Void> seckillFuture = CompletableFuture.runAsync(() -> {
+            //6、商品秒杀信息
+            R r = seckillFeignService.querySkuSeckillInfo(skuId);
+            if (r.getCode() == 0) {
+                SeckillSkuInfoVo data = r.getData(new TypeReference<SeckillSkuInfoVo>() {
+                });
+                skuItemVo.setSeckillSkuInfoVo(data);
+            }
+        }, threadPoolExecutor);
+
         //异步编排
-        CompletableFuture.allOf(saleAttrFuture, descFuture, baseFuture, imagesFuture).get();
+        CompletableFuture.allOf(saleAttrFuture, descFuture, baseFuture, imagesFuture, seckillFuture).get();
 
         return skuItemVo;
     }

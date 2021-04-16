@@ -592,10 +592,14 @@
         window.location.href = "http://search.snailmall.com/list.html?keyword=" + keyword;
     }
 
+    function to_href(skuId){
+        location.href = "http://item.snailmall.com/" + skuId + ".html";
+    }
+
     $.get("http://seckill.snailmall.com/currentSeckillSkus", function (data) {
         if (data.data.length > 0) {
             data.data.forEach(function (item) {
-                $("<li></li>>")
+                $("<li onclick='to_href("+item.skuId+")'></li>")
                     .append($("<img style='width: 130px;height: 130px;' src='" + item.skuInfoVo.skuDefaultImg + "'/>"))
                     .append($("<p>" + item.skuInfoVo.skuSubtitle + "</p>"))
                     .append($("<span>" + item.seckillPrice + "</span>"))
@@ -603,14 +607,6 @@
                     .appendTo("#seckillContentSku");
             })
         }
-        /**
-         * <li>
-         <img src="/static/index/img/section_second_list_img1.jpg" alt="">
-         <p>花王 (Merries) 妙而舒 纸尿裤 大号 L54片 尿不湿（9-14千克） （日本官方直采） 花王 (Merries) 妙而舒 纸尿裤 大号 L54片
-         尿不湿（9-14千</p>
-         <span>¥83.9</span><s>¥99.9</s>
-         </li>
-         */
     })
 
 </script>
