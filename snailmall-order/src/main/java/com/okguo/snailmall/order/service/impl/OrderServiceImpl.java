@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.okguo.common.exception.BizCodeEnum;
 import com.okguo.common.exception.RRException;
 import com.okguo.common.to.OrderTo;
+import com.okguo.common.to.mq.SeckillOrderTo;
 import com.okguo.common.utils.R;
 import com.okguo.common.vo.MemberVO;
 import com.okguo.snailmall.order.constant.OrderConstant;
@@ -266,6 +267,27 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         }
 
         return "success";
+    }
+
+    @Override
+    public void orderSeckillCreate(SeckillOrderTo seckillOrderTo) {
+        //TODO 保存订单信息
+        OrderEntity orderEntity = new OrderEntity();
+        orderEntity.setOrderSn(seckillOrderTo.getOrderSn());
+        orderEntity.setMemberId(seckillOrderTo.getMemberId());
+        orderEntity.setStatus(OrderStatusEnum.CREATE_NEW.getCode());
+        BigDecimal amount = seckillOrderTo.getSeckillPrice().multiply(new BigDecimal("" + seckillOrderTo.getNum()));
+        orderEntity.setPayAmount(amount);
+        this.save(orderEntity);
+
+        //TODO 保存订单项信息
+        OrderItemEntity orderItemEntity = new OrderItemEntity();
+        orderItemEntity.setOrderSn(seckillOrderTo.getOrderSn());
+        orderItemEntity.setSkuId(seckillOrderTo.getSkuId());
+        orderItemEntity.setSkuPrice(seckillOrderTo.getSeckillPrice());
+        orderItemEntity.setSkuQuantity(seckillOrderTo.getNum());
+        orderItemEntity.setRealAmount(amount);
+        orderItemService.save(orderItemEntity);
     }
 
     void saveOrderToDB(OrderCreateTo order) {

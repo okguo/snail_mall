@@ -1,6 +1,7 @@
 package com.okguo.snailmall.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.okguo.common.to.mq.SeckillOrderTo;
 import com.okguo.common.utils.PageUtils;
 import com.okguo.snailmall.order.entity.OrderEntity;
 import com.okguo.snailmall.order.vo.*;
@@ -32,5 +33,7 @@ public interface OrderService extends IService<OrderEntity> {
     PageUtils queryPageWithItem(Map<String, Object> params);
 
     String handlePayResult(PayAsyncVo vo);
+
+    void orderSeckillCreate(SeckillOrderTo seckillOrderTo);
 }
 
