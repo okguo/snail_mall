@@ -18,6 +18,7 @@ package com.okguo.common.exception;
  * 16: 库存
  */
 public enum BizCodeEnum {
+    TOO_MANY_REQUEST(10000, "请求流量过大"),
     PRODUCT_UP_EXCEPTION(11000, "商品上架异常"),
     MOBILE_EXIST_EXCEPTION(15001, "用户手机号已存在"),
     USERNAME_EXIST_EXCEPTION(15002, "用户名已存在"),
