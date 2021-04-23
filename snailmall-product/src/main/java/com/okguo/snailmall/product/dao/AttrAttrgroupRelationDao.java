@@ -19,6 +19,7 @@ public interface AttrAttrgroupRelationDao extends BaseMapper<AttrAttrgroupRelati
 
     /**
      * 批量删除关系
+     *
      * @param entities entities
      */
     void deleteBatchRelation(@Param("entities") List<AttrAttrgroupRelationEntity> entities);
