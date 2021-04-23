@@ -17,5 +17,9 @@ import java.util.List;
 @Mapper
 public interface AttrAttrgroupRelationDao extends BaseMapper<AttrAttrgroupRelationEntity> {
 
+    /**
+     * 批量删除关系
+     * @param entities entities
+     */
     void deleteBatchRelation(@Param("entities") List<AttrAttrgroupRelationEntity> entities);
 }

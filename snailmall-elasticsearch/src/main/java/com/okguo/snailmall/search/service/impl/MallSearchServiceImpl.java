@@ -130,7 +130,7 @@ public class MallSearchServiceImpl implements MallSearchService {
         if (StringUtils.isNotEmpty(param.getSort())) {
             String sort = param.getSort();
             String[] s = sort.split("_");
-            SortOrder sortOrder = s[1].equalsIgnoreCase("asc") ? SortOrder.ASC : SortOrder.DESC;
+            SortOrder sortOrder = "asc".equalsIgnoreCase(s[1]) ? SortOrder.ASC : SortOrder.DESC;
             sourceBuilder.sort(s[0], sortOrder);
         }
 

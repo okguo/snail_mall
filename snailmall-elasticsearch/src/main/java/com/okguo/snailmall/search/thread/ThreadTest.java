@@ -61,6 +61,7 @@ public class ThreadTest {
     }
 
     public static class Thread01 extends Thread {
+        @Override
         public void run() {
             System.out.println(10 / 2);
         }

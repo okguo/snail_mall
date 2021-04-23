@@ -61,7 +61,7 @@ public class SeckillServiceImpl implements SeckillService {
     @Override
     public List<SeckillSkuRelationVo> queryCurrentSeckillSkus() {
         //1.确定当前时间数据哪个秒杀场次
-        long time = new Date().getTime();
+        long time = System.currentTimeMillis();
         Set<String> keys = redisTemplate.keys(SESSION_CACHE_PREFIX + "*");
         assert keys != null;
         for (String key : keys) {
@@ -92,7 +92,7 @@ public class SeckillServiceImpl implements SeckillService {
             for (String key : keys) {
                 if (Long.parseLong(key.split("_")[1]) == skuId) {
                     SeckillSkuRelationVo seckillSkuRelationVo = JSON.parseObject(hashOps.get(key), SeckillSkuRelationVo.class);
-                    long time = new Date().getTime();
+                    long time = System.currentTimeMillis();
                     assert seckillSkuRelationVo != null;
                     if (time < seckillSkuRelationVo.getStartTime() || time > seckillSkuRelationVo.getEndTime()) {
                         seckillSkuRelationVo.setRandomCode(null);
@@ -118,7 +118,7 @@ public class SeckillServiceImpl implements SeckillService {
         SeckillSkuRelationVo seckillSkuRelationVo = JSONObject.parseObject(s, SeckillSkuRelationVo.class);
         long startTime = seckillSkuRelationVo.getStartTime();
         long endTime = seckillSkuRelationVo.getEndTime();
-        long currentTime = new Date().getTime();
+        long currentTime = System.currentTimeMillis();
         if (currentTime < startTime || currentTime > endTime) {
             return null;
         }

@@ -62,6 +62,7 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
     @Autowired
     private OrderFeignService orderFeignService;
 
+    @Override
     public void unlockStock(StockLockedTo stockLockedTo) {
 
         Long taskId = stockLockedTo.getId();

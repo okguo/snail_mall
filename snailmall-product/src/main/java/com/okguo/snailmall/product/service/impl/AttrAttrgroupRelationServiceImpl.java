@@ -19,6 +19,9 @@ import com.okguo.snailmall.product.entity.AttrAttrgroupRelationEntity;
 import com.okguo.snailmall.product.service.AttrAttrgroupRelationService;
 
 
+/**
+ * @author Administrator
+ */
 @Service("attrAttrgroupRelationService")
 public class AttrAttrgroupRelationServiceImpl extends ServiceImpl<AttrAttrgroupRelationDao, AttrAttrgroupRelationEntity> implements AttrAttrgroupRelationService {
 

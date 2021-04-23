@@ -38,6 +38,7 @@ public interface CategoryService extends IService<CategoryEntity> {
      * @Author: Guoyongfu
      * @Date: 2021/1/15 19:37
      */
+    @Override
     boolean save(CategoryEntity category);
 
     Long[] queryCategoryPathById(Long categoryId);

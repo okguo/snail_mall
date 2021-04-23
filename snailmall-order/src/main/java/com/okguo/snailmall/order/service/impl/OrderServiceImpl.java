@@ -2,14 +2,21 @@ package com.okguo.snailmall.order.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.okguo.common.exception.BizCodeEnum;
 import com.okguo.common.exception.RRException;
 import com.okguo.common.to.OrderTo;
 import com.okguo.common.to.mq.SeckillOrderTo;
+import com.okguo.common.utils.PageUtils;
+import com.okguo.common.utils.Query;
 import com.okguo.common.utils.R;
 import com.okguo.common.vo.MemberVO;
 import com.okguo.snailmall.order.constant.OrderConstant;
+import com.okguo.snailmall.order.dao.OrderDao;
+import com.okguo.snailmall.order.entity.OrderEntity;
 import com.okguo.snailmall.order.entity.OrderItemEntity;
 import com.okguo.snailmall.order.entity.PaymentInfoEntity;
 import com.okguo.snailmall.order.enume.OrderStatusEnum;
@@ -19,21 +26,21 @@ import com.okguo.snailmall.order.feign.ProductFeignService;
 import com.okguo.snailmall.order.feign.WareFeignService;
 import com.okguo.snailmall.order.interceptor.LoginUserInterceptor;
 import com.okguo.snailmall.order.service.OrderItemService;
+import com.okguo.snailmall.order.service.OrderService;
 import com.okguo.snailmall.order.service.PaymentInfoService;
 import com.okguo.snailmall.order.to.OrderCreateTo;
 import com.okguo.snailmall.order.vo.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.amqp.rabbit.annotation.Exchange;
-import org.springframework.amqp.rabbit.annotation.Queue;
-import org.springframework.amqp.rabbit.annotation.QueueBinding;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -42,19 +49,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.okguo.common.utils.PageUtils;
-import com.okguo.common.utils.Query;
-
-import com.okguo.snailmall.order.dao.OrderDao;
-import com.okguo.snailmall.order.entity.OrderEntity;
-import com.okguo.snailmall.order.service.OrderService;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 
 @Slf4j
 @Service("orderService")
@@ -94,7 +88,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     @Override
     public OrderConfirmVo confirmOrder() throws ExecutionException, InterruptedException {
-        MemberVO memberVO = loginUserInterceptor.threadLocal.get();
+        MemberVO memberVO = LoginUserInterceptor.threadLocal.get();
         OrderConfirmVo orderConfirmVo = new OrderConfirmVo();
         //异步编排保证每个线程都共享cookie
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
@@ -139,14 +133,18 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return orderConfirmVo;
     }
 
-    //    @GlobalTransactional
+    /**
+     * @GlobalTransactional
+     * @param submitVo
+     * @return
+     */
     @Transactional(rollbackFor = Exception.class)
     @Override
     public SubmitOrderResponseVo submitOrder(OrderSubmitVo submitVo) {
         submitVoThreadLocal.set(submitVo);
         SubmitOrderResponseVo responseVo = new SubmitOrderResponseVo();
         responseVo.setCode(0);
-        MemberVO memberVO = loginUserInterceptor.threadLocal.get();
+        MemberVO memberVO = LoginUserInterceptor.threadLocal.get();
         //1、验证令牌 (保证查询，验证，删除令牌为原子操作)
 
         String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
@@ -262,7 +260,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         paymentInfoService.save(paymentInfo);
         //2.修改订单状态
 
-        if (vo.getTrade_status().equals("TRADE_SUCCESS") || vo.getTrade_status().equals("TRADE_FINISHED")) {
+        if ("TRADE_SUCCESS".equals(vo.getTrade_status()) || "TRADE_FINISHED".equals(vo.getTrade_status())) {
             this.baseMapper.updateOrderStatus(vo.getOut_trade_no(), OrderStatusEnum.PAYED.getCode());
         }
 

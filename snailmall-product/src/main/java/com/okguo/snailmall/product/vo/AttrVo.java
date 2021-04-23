@@ -3,6 +3,9 @@ package com.okguo.snailmall.product.vo;
 
 import lombok.Data;
 
+/**
+ * @author Administrator
+ */
 @Data
 public class AttrVo {
     /**

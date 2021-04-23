@@ -24,6 +24,9 @@ import com.okguo.snailmall.product.entity.AttrGroupEntity;
 import com.okguo.snailmall.product.service.AttrGroupService;
 
 
+/**
+ * @author Administrator
+ */
 @Service("attrGroupService")
 public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEntity> implements AttrGroupService {
 

@@ -14,6 +14,7 @@ import java.util.Date;
  * Date dateParse = DateFormatUtil.INSTANCE.parse(dateText,  DateFormatUtil.yyyyMMddHHmmss_CN);
  * 转换
  * DateFormatUtil.INSTANCE.transform(dateText, DateFormatUtil.yyyyMMddHHmmss, DateFormatUtil.yyyyMMddHHmm_H);
+ * @author Administrator
  */
 public enum DateFormatUtil {
 
