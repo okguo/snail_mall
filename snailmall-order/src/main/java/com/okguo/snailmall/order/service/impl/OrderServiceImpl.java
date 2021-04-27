@@ -134,9 +134,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     }
 
     /**
-     * @GlobalTransactional
      * @param submitVo
      * @return
+     * @GlobalTransactional
      */
     @Transactional(rollbackFor = Exception.class)
     @Override
