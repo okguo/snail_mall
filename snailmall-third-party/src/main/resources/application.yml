@@ -1,7 +1,0 @@
-spring:
-  alicloud:
-    sms:
-      sms-host: https://smssend.shumaidata.com
-      app-code: a64d1060f2934443aeb05ac624b49fe1
-      template-id: M09DD535F4
-

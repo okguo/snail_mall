@@ -29,7 +29,7 @@ public class SnailmallElasticSearchConfig {
 
     @Bean
     public RestHighLevelClient getEsClient() {
-        RestClientBuilder builder = RestClient.builder(new HttpHost("192.168.56.10", 9200, "http"));
+        RestClientBuilder builder = RestClient.builder(new HttpHost("elasticsearch-server.snailmall", 9200, "http"));
         return new RestHighLevelClient(builder);
     }
 

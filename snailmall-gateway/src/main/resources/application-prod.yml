@@ -1,0 +1,82 @@
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: product_router
+          uri: lb://snailmall-product
+          predicates:
+            - Path=/api/product/**
+          filters:
+            - RewritePath=/api/(?<segment>/?.*), /$\{segment}
+
+        - id: coupon_router
+          uri: lb://snailmall-coupon
+          predicates:
+            - Path=/api/coupon/**
+          filters:
+            - RewritePath=/api/(?<segment>/?.*), /$\{segment}
+
+        - id: member_router
+          uri: lb://snailmall-member
+          predicates:
+            - Path=/api/member/**
+          filters:
+            - RewritePath=/api/(?<segment>/?.*), /$\{segment}
+
+        - id: ware_router
+          uri: lb://snailmall-ware
+          predicates:
+            - Path=/api/ware/**
+          filters:
+            - RewritePath=/api/(?<segment>/?.*), /$\{segment}
+
+        - id: third_party_router
+          uri: lb://snailmall-third-party
+          predicates:
+            - Path=/api/thirdParty/**
+          filters:
+            - RewritePath=/api/thirdParty/(?<segment>/?.*), /$\{segment}
+
+        - id: admin_router
+          uri: lb://renren-fast
+          predicates:
+            - Path=/api/**
+          filters:
+            - RewritePath=/api/(?<segment>/?.*), /renren-fast/$\{segment}
+
+        - id: snailmall_host_router
+          uri: lb://snailmall-product
+          predicates:
+            - Host=snailmall.com,item.snailmall.com
+
+        - id: snailmall_elasticsearch_host_router
+          uri: lb://snailmall-elasticsearch
+          predicates:
+            - Host=search.snailmall.com
+
+        - id: snailmall_auth_router
+          uri: lb://snailmall-auth-server
+          predicates:
+            - Host=auth.snailmall.com
+
+        - id: snailmall_cart_router
+          uri: lb://snailmall-cart
+          predicates:
+            - Host=cart.snailmall.com
+
+        - id: snailmall_order_router
+          uri: lb://snailmall-order
+          predicates:
+            - Host=order.snailmall.com
+
+        - id: snailmall_member_router
+          uri: lb://snailmall-member
+          predicates:
+            - Host=member.snailmall.com
+
+        - id: snailmall_seckill_router
+          uri: lb://snailmall-seckill
+          predicates:
+            - Host=seckill.snailmall.com
+
